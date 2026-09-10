@@ -1,6 +1,6 @@
-// CCNA Launchpad v1.1.2 — beginner sequencing and lab prerequisite hotfix
+// CCNA Launchpad v1.1.3 — beginner sequencing and lab prerequisite hotfix
 (() => {
-  const HOTFIX_VERSION = '1.1.2';
+  const HOTFIX_VERSION = '1.1.3';
 
   // The original v1.0.0 sequence exposed Lab 1 before IOS modes were taught.
   // Insert a zero-assumption CLI lesson immediately after the first two foundations lessons.

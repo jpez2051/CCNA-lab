@@ -1,4 +1,4 @@
-# CCNA Launchpad v1.1.2
+# CCNA Launchpad v1.1.3
 
 A beginner-first browser learning app for CCNA 200-301 study.
 
@@ -23,6 +23,7 @@ The Pages workflow deploys automatically whenever `main` changes, so the live si
 The application intentionally favors short conceptual lessons plus active recall and configuration over long passive lectures. It is not a replacement for real Cisco IOS, Packet Tracer, CML, GNS3, or EVE-NG; the built-in CLI is a learning simulator that covers a deliberately small command set.
 
 ## Version history
+- v1.1.3: lessons with an associated lab stay open after mastery. The Skill completion section confirms saved mastery and enables Run associated lab without losing the knowledge-check answer or scroll position. Lessons without labs still return to the course.
 - v1.1.2: mastery returns to the course with a highlighted next step; required labs remain pending until their checklist is complete. Lab completion is saved separately, mastered lessons remain available for review, and static-route practice follows its configuration prerequisite.
 - v1.1.1: beginner CLI lesson and lab prerequisites
 - v1.0.0: initial CCNA Launchpad application

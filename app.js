@@ -1,4 +1,4 @@
-const VERSION='1.1.2';
+const VERSION='1.1.3';
 const domains=[
  {id:'fund',icon:'🧱',title:'Network Fundamentals',desc:'Learn what networks are, how data moves, Ethernet, IPv4/IPv6 and subnetting.'},
  {id:'access',icon:'🔀',title:'Network Access',desc:'Switching, VLANs, trunks, STP, EtherChannel and wireless access.'},
@@ -105,7 +105,22 @@ function renderLesson(id){
  const l=lessons.find(x=>x.id===id), d=domains.find(x=>x.id===l.domain); pageTitle.textContent=l.title;
  content.innerHTML=`<div class="lesson-layout"><article class="card lesson-card"><span class="pill">${d.title.toUpperCase()}</span><h2>${l.title}</h2><p class="q-meta">~${l.mins} minutes • beginner explanation • exam-relevant</p>${l.body}<h3>Check yourself</h3><div class="check" id="lessonCheck"><b>${l.q.q}</b>${l.q.opts.map((o,i)=>`<label><input type="radio" name="q" value="${i}"> ${o}</label>`).join('')}<button class="btn btn-secondary" id="checkAnswer">Check answer</button><div class="result" id="result"></div></div></article><aside class="card lesson-nav"><h4>Skill completion</h4><p class="q-meta">Don't mark this complete until you can explain the main idea without reading.</p>${l.lab?`<button class="btn btn-secondary" id="openLessonLab">⌨️ Run associated lab</button>`:''}<button class="btn btn-primary" id="markDone">${state.done.includes(l.id)?'✓ Mastered — return to course':'Mark lesson mastered'}</button><button class="btn btn-secondary" id="backCourse">Back to course</button></aside></div>`;
  document.querySelector('#checkAnswer').onclick=()=>{let r=document.querySelector('input[name=q]:checked');if(!r)return;let ok=+r.value===l.q.a;state.quizTotal++;if(ok)state.quizCorrect++;save();document.querySelector('#result').innerHTML=`<span class="${ok?'ok':'bad'}">${ok?'Correct.':'Not yet.'}</span> ${l.q.e}`};
- document.querySelector('#markDone').onclick=()=>{if(!state.done.includes(l.id))state.done.push(l.id);save();renderLearn(null,id)};
+ const masteryButton=document.querySelector('#markDone');
+ const showLabMastery=()=>{
+  masteryButton.textContent='✓ Lesson mastered';
+  let status=document.querySelector('#masteryStatus');
+  if(!status){status=document.createElement('p');status.id='masteryStatus';status.className='q-meta';status.setAttribute('role','status');masteryButton.before(status)}
+  status.textContent=state.labsDone?.includes(l.lab)?'Lesson and lab complete. You can review either again.':'Lesson complete — now apply it in the lab.';
+  const labButton=document.querySelector('#openLessonLab');
+  labButton.disabled=!!labs[l.lab].prereq && !state.done.includes(labs[l.lab].prereq);
+  labButton.textContent=labButton.disabled?'Master the prerequisite lesson to unlock this lab':'⌨️ Run associated lab';
+ };
+ if(l.lab && state.done.includes(l.id))showLabMastery();
+ masteryButton.onclick=()=>{
+  if(!state.done.includes(l.id))state.done.push(l.id);
+  save();
+  if(l.lab)showLabMastery();else renderLearn(null,id);
+ };
  document.querySelector('#backCourse').onclick=()=>{currentLesson=null;renderLearn()};
  if(l.lab)document.querySelector('#openLessonLab').onclick=()=>{launchLab(l.lab)};
 }
