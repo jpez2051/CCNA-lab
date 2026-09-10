@@ -1,6 +1,6 @@
-// CCNA Launchpad v1.1.1 — beginner sequencing and lab prerequisite hotfix
+// CCNA Launchpad v1.1.2 — beginner sequencing and lab prerequisite hotfix
 (() => {
-  const HOTFIX_VERSION = '1.1.1';
+  const HOTFIX_VERSION = '1.1.2';
 
   // The original v1.0.0 sequence exposed Lab 1 before IOS modes were taught.
   // Insert a zero-assumption CLI lesson immediately after the first two foundations lessons.
@@ -98,20 +98,16 @@
     labs[labId].prereq = lessonId;
   });
 
-  // Prevent the lesson UI from inviting a learner into Lab 1 before the lesson is complete.
+  // The routing overview comes before the static-route configuration prerequisite.
+  lessons.find(l => l.id === 'r1').lab = null;
   const baseRenderLesson = renderLesson;
   renderLesson = function(id) {
     baseRenderLesson(id);
-    if (id === 'cli0') {
-      const labButton = document.querySelector('#openLessonLab');
-      if (labButton && !state.done.includes('cli0')) {
-        labButton.textContent = '🔒 Finish this lesson to unlock Lab 1';
-        labButton.disabled = true;
-        labButton.style.opacity = '.55';
-        labButton.style.cursor = 'not-allowed';
-      } else if (labButton) {
-        labButton.textContent = '⌨️ Run Lab 1 — apply what you just learned';
-      }
+    const lesson = lessons.find(l => l.id === id);
+    const button = document.querySelector('#openLessonLab');
+    if (button && labs[lesson.lab].prereq && !state.done.includes(labs[lesson.lab].prereq)) {
+      button.textContent = 'Master the prerequisite lesson to unlock this lab';
+      button.disabled = true;
     }
   };
 
@@ -147,7 +143,7 @@
       <div class="card" style="max-width:760px;margin:0 auto;padding:28px">
         <span class="pill">🔒 NOT YET — AND THAT'S INTENTIONAL</span>
         <h2 style="margin-bottom:8px">Learn it before you configure it.</h2>
-        <p style="color:var(--muted)">This lab uses knowledge from <b style="color:var(--text)">${prerequisite ? prerequisite.title : 'an earlier lesson'}</b>. The previous version let you enter labs before teaching their language. v${HOTFIX_VERSION} fixes that sequencing error.</p>
+        <p style="color:var(--muted)">This lab uses knowledge from <b style="color:var(--text)">${prerequisite ? prerequisite.title : 'an earlier lesson'}</b>. Complete that lesson, then return here to practice.</p>
         ${selected === 'l1' ? `<div class="concept-box" style="margin:18px 0"><b>Before Lab 1 you will learn:</b><br>• what the Cisco CLI is<br>• what user EXEC, privileged EXEC, and global configuration modes mean<br>• how the prompt changes between <code>&gt;</code>, <code>#</code>, and <code>(config)#</code><br>• why <code>enable</code>, <code>configure terminal</code>, <code>end</code>, and <code>show running-config</code> are used</div>` : ''}
         <button class="btn btn-primary" id="goPrereq">Go to prerequisite lesson</button>
         <button class="btn btn-secondary" id="backCourseFromLab" style="margin-left:8px">Back to course</button>

@@ -1,4 +1,4 @@
-const VERSION='1.0.0';
+const VERSION='1.1.2';
 const domains=[
  {id:'fund',icon:'🧱',title:'Network Fundamentals',desc:'Learn what networks are, how data moves, Ethernet, IPv4/IPv6 and subnetting.'},
  {id:'access',icon:'🔀',title:'Network Access',desc:'Switching, VLANs, trunks, STP, EtherChannel and wireless access.'},
@@ -66,29 +66,48 @@ function render(){
 }
 function renderDashboard(){
  pageTitle.textContent='Your Network Engineering Launchpad';
- content.innerHTML=`<section class="hero"><div class="hero-grid"><div><span class="pill">NO EXPERIENCE REQUIRED</span><h2>Learn networking by building it.</h2><p>Short explanations, mental models, Cisco-style CLI practice and troubleshooting. Your goal is not to memorize networking vocabulary — it is to be able to explain, configure, verify and fix a network.</p><div class="cta-row"><button class="btn btn-primary" id="continueBtn">${state.done.length?'Continue learning':'Start from zero'}</button><button class="btn btn-secondary" id="labBtn">Open CLI lab</button></div></div><div class="stat-orbit"><div class="ring" style="--progress:${pct()}%"><div class="ring-inner"><b>${pct()}%</b><small>course complete</small></div></div></div></div></section>
+ content.innerHTML=`<section class="hero"><div class="hero-grid"><div><span class="pill">NO EXPERIENCE REQUIRED</span><h2>Learn networking by building it.</h2><p>Short explanations, mental models, Cisco-style CLI practice and troubleshooting. Your goal is not to memorize networking vocabulary — it is to be able to explain, configure, verify and fix a network.</p><div class="cta-row"><button class="btn btn-primary" id="continueBtn">${state.done.length?'Continue learning':'Start from zero'}</button><button class="btn btn-secondary" id="labBtn">Open CLI lab</button></div></div><div class="stat-orbit"><div class="ring" style="--progress:${pct()}%"><div class="ring-inner"><b>${pct()}%</b><small>lessons mastered</small></div></div></div></div></section>
  <div class="section-head"><div><h3>Your training signal</h3><p>What matters is retained skill, not hours watched.</p></div></div>
  <div class="grid grid-3"><div class="card metric"><b>${state.done.length}/${lessons.length}</b><small>lessons mastered</small></div><div class="card metric"><b>${state.quizTotal?Math.round(state.quizCorrect/state.quizTotal*100):0}%</b><small>knowledge-check accuracy</small></div><div class="card metric"><b>${Object.keys(labs).length}</b><small>guided CLI labs</small></div></div>
  <div class="section-head"><div><h3>CCNA skill map</h3><p>Built around the current 200-301 exam domains.</p></div><button class="btn btn-secondary" id="allLessons">View course</button></div>
  <div class="grid grid-3">${domains.map(d=>domainCard(d)).join('')}</div>`;
- document.querySelector('#continueBtn').onclick=()=>{let next=lessons.find(l=>!state.done.includes(l.id))||lessons[0];currentView='learn';currentLesson=next.id;render()};
+ document.querySelector('#continueBtn').onclick=()=>{setView('learn')};
  document.querySelector('#labBtn').onclick=()=>setView('labs'); document.querySelector('#allLessons').onclick=()=>setView('learn');
  document.querySelectorAll('.domain-card').forEach(x=>x.onclick=()=>{currentView='learn';renderLearn(x.dataset.domain)});
 }
 function domainCard(d){let dp=domainPct(d.id);return `<div class="card domain-card" data-domain="${d.id}"><div class="domain-icon">${d.icon}</div><h4>${d.title}</h4><p>${d.desc}</p><div class="progress-track"><div class="progress-fill" style="width:${dp}%"></div></div><div class="domain-meta"><span>${lessons.filter(x=>x.domain===d.id).length} lessons</span><span>${dp}%</span></div></div>`}
-function renderLearn(filter=null){
- pageTitle.textContent='Guided CCNA Course';
+function nextCourseStep(){
+ for(const lesson of lessons){
+  if(!state.done.includes(lesson.id))return {lesson};
+  if(lesson.lab && !state.labsDone?.includes(lesson.lab) && (!labs[lesson.lab].prereq || state.done.includes(labs[lesson.lab].prereq)))return {lesson,labId:lesson.lab};
+ }
+ return null;
+}
+function launchLab(id){currentView='labs';currentLesson=null;document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view==='labs'));renderLabs(id);window.scrollTo(0,0)}
+function renderLearn(filter=null,completedId=null){
+ currentView='learn';currentLesson=null;pageTitle.textContent='Guided CCNA Course';
+ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view==='learn'));
+ const completed=lessons.find(l=>l.id===completedId);
+ const pendingLab=completed?.lab && !state.labsDone?.includes(completed.lab)?completed.lab:null;
+ const step=pendingLab?{lesson:completed,labId:pendingLab}:nextCourseStep();
  const ds=filter?domains.filter(d=>d.id===filter):domains;
- content.innerHTML=`<div class="warning"><b>How to use this course:</b> Do the knowledge check without looking back. When a lesson has a lab, run the lab before marking the topic “done.” If you can’t explain a concept in plain English, you don’t own it yet.</div>${ds.map(d=>`<div class="section-head"><div><h3>${d.icon} ${d.title}</h3><p>${d.desc}</p></div><span class="pill">${domainPct(d.id)}% complete</span></div><div class="module-list">${lessons.filter(l=>l.domain===d.id).map((l,i)=>`<div class="module" data-id="${l.id}"><div class="module-num">${i+1}</div><div><h4>${state.done.includes(l.id)?'✓ ':''}${l.title}</h4><p>${l.mins} min lesson ${l.lab?'• includes guided CLI lab':''}</p></div><span class="badge ${l.lab?'lab':''}">${l.lab?'LAB':'LESSON'}</span></div>`).join('')}</div>`).join('')}`;
- document.querySelectorAll('.module').forEach(x=>x.onclick=()=>{currentLesson=x.dataset.id;render()});
+ content.innerHTML=`<section class="card next-step" aria-labelledby="nextStepTitle"><p role="status">${completed?(pendingLab?'Lesson complete — now apply it in the lab':'Lesson mastery saved. Choose your next step.'):'Your next recommended step'}</p>
+<h2 id="nextStepTitle" tabindex="-1">${step?(step.labId?labs[step.labId].title:step.lesson.title):'All lessons and labs complete'}</h2>
+${step?`<button class="btn btn-primary" id="nextCourseStep">${step.labId?'Launch required lab':'Open next recommended lesson'}</button>`:'<p>Reopen any lesson or lab to keep practicing.</p>'}</section>
+<div class="warning"><b>How to use this course:</b> Check your understanding, then mark the lesson mastered to save your reading progress. Complete its required lab next. Lesson mastery and lab completion are saved separately; review is always available.</div>
+${ds.map(d=>`<div class="section-head"><div><h3>${d.icon} ${d.title}</h3><p>${d.desc}</p></div><span class="pill">${domainPct(d.id)}% lessons mastered</span></div>
+<div class="module-list">${lessons.filter(l=>l.domain===d.id).map((l,i)=>`<button type="button" class="module ${step?.lesson.id===l.id?'recommended':''}" data-id="${l.id}"><span class="module-num">${i+1}</span><span><strong>${l.title}</strong><span class="module-detail">${state.done.includes(l.id)?'✓ Mastered · Reopen for review':l.mins+' min lesson'}${l.lab?(state.labsDone?.includes(l.lab)?' · Lab complete':' · Required lab pending'):''}</span></span><span class="badge ${l.lab?'lab':''}">${step?.lesson.id===l.id?'NEXT':l.lab?'LAB':'LESSON'}</span></button>`).join('')}</div>`).join('')}`;
+ document.querySelectorAll('.module').forEach(x=>x.onclick=()=>{currentLesson=x.dataset.id;render();window.scrollTo(0,0)});
+ if(step)document.querySelector('#nextCourseStep').onclick=()=>{if(step.labId)launchLab(step.labId);else{currentLesson=step.lesson.id;render();window.scrollTo(0,0)}};
+ if(completedId){window.scrollTo(0,0);document.querySelector('#nextStepTitle').focus({preventScroll:true})}
 }
 function renderLesson(id){
  const l=lessons.find(x=>x.id===id), d=domains.find(x=>x.id===l.domain); pageTitle.textContent=l.title;
- content.innerHTML=`<div class="lesson-layout"><article class="card lesson-card"><span class="pill">${d.title.toUpperCase()}</span><h2>${l.title}</h2><p class="q-meta">~${l.mins} minutes • beginner explanation • exam-relevant</p>${l.body}<h3>Check yourself</h3><div class="check" id="lessonCheck"><b>${l.q.q}</b>${l.q.opts.map((o,i)=>`<label><input type="radio" name="q" value="${i}"> ${o}</label>`).join('')}<button class="btn btn-secondary" id="checkAnswer">Check answer</button><div class="result" id="result"></div></div></article><aside class="card lesson-nav"><h4>Skill completion</h4><p class="q-meta">Don't mark this complete until you can explain the main idea without reading.</p>${l.lab?`<button class="btn btn-secondary" id="openLessonLab">⌨️ Run associated lab</button>`:''}<button class="btn btn-primary" id="markDone">${state.done.includes(l.id)?'✓ Completed':'Mark lesson mastered'}</button><button class="btn btn-secondary" id="backCourse">Back to course</button></aside></div>`;
+ content.innerHTML=`<div class="lesson-layout"><article class="card lesson-card"><span class="pill">${d.title.toUpperCase()}</span><h2>${l.title}</h2><p class="q-meta">~${l.mins} minutes • beginner explanation • exam-relevant</p>${l.body}<h3>Check yourself</h3><div class="check" id="lessonCheck"><b>${l.q.q}</b>${l.q.opts.map((o,i)=>`<label><input type="radio" name="q" value="${i}"> ${o}</label>`).join('')}<button class="btn btn-secondary" id="checkAnswer">Check answer</button><div class="result" id="result"></div></div></article><aside class="card lesson-nav"><h4>Skill completion</h4><p class="q-meta">Don't mark this complete until you can explain the main idea without reading.</p>${l.lab?`<button class="btn btn-secondary" id="openLessonLab">⌨️ Run associated lab</button>`:''}<button class="btn btn-primary" id="markDone">${state.done.includes(l.id)?'✓ Mastered — return to course':'Mark lesson mastered'}</button><button class="btn btn-secondary" id="backCourse">Back to course</button></aside></div>`;
  document.querySelector('#checkAnswer').onclick=()=>{let r=document.querySelector('input[name=q]:checked');if(!r)return;let ok=+r.value===l.q.a;state.quizTotal++;if(ok)state.quizCorrect++;save();document.querySelector('#result').innerHTML=`<span class="${ok?'ok':'bad'}">${ok?'Correct.':'Not yet.'}</span> ${l.q.e}`};
- document.querySelector('#markDone').onclick=()=>{if(!state.done.includes(l.id))state.done.push(l.id);save();renderLesson(id)};
+ document.querySelector('#markDone').onclick=()=>{if(!state.done.includes(l.id))state.done.push(l.id);save();renderLearn(null,id)};
  document.querySelector('#backCourse').onclick=()=>{currentLesson=null;renderLearn()};
- if(l.lab)document.querySelector('#openLessonLab').onclick=()=>{currentView='labs';renderLabs(l.lab)};
+ if(l.lab)document.querySelector('#openLessonLab').onclick=()=>{launchLab(l.lab)};
 }
 function renderLabs(selected='l1'){
  pageTitle.textContent='Cisco CLI Practice Lab';
@@ -101,7 +120,7 @@ function initTerminal(labId){
  const out=document.querySelector('#termOut'),inp=document.querySelector('#termInput'),pr=document.querySelector('#prompt');
  const prompt=()=>mode==='user'?`${host}>`:mode==='priv'?`${host}#`:mode==='config'?`${host}(config)#`:mode==='vlan'?`${host}(config-vlan)#`:mode==='router'?`${host}(config-router)#`:`${host}#`;
  function print(s=''){out.textContent+=s+'\n';out.scrollTop=out.scrollHeight}
- function sync(){pr.textContent=prompt(); document.querySelectorAll('.task').forEach((t,i)=>t.classList.toggle('done',progress.has(i)));if(progress.size===labs[labId].goals.length)document.querySelector('#labDone').innerHTML='<div class="lab-success"><b>Lab complete.</b> You configured and verified the target state.</div>'}
+ function sync(){pr.textContent=prompt(); document.querySelectorAll('.task').forEach((t,i)=>t.classList.toggle('done',progress.has(i)));if(progress.size===labs[labId].goals.length){state.labsDone=state.labsDone||[];if(!state.labsDone.includes(labId)){state.labsDone.push(labId);save()}document.querySelector('#labDone').innerHTML='<div class="lab-success" role="status"><b>Lab complete.</b> You configured and verified the target state.<br><button class="btn btn-primary" id="labBackCourse">Back to course — next step</button></div>';document.querySelector('#labBackCourse').onclick=()=>setView('learn')}}
  function run(raw){let c=raw.trim(),lc=c.toLowerCase();print(prompt()+c); if(!c)return;
    if(lc==='?'||lc==='help'){print('Starter commands: enable, configure terminal, show running-config, show vlan brief, show ip route, show ip ospf, show access-lists');return}
    if(mode==='user'&&lc==='enable'){mode='priv'; if(labId==='l1')progress.add(0);sync();return}
