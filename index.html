@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="CCNA Launchpad — beginner-friendly CCNA learning with lessons, quizzes and interactive Cisco-style labs." />
+  <title>CCNA Launchpad v1.0.0</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">CL</div>
+        <div><strong>CCNA Launchpad</strong><span>v1.0.0</span></div>
+      </div>
+      <nav id="nav">
+        <button class="nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
+        <button class="nav-btn" data-view="learn">📚 <span>Learn</span></button>
+        <button class="nav-btn" data-view="labs">⌨️ <span>Lab</span></button>
+        <button class="nav-btn" data-view="practice">🧠 <span>Practice</span></button>
+        <button class="nav-btn" data-view="roadmap">🗺️ <span>Roadmap</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="tiny">Progress is saved in this browser.</div>
+        <button id="resetProgress" class="text-btn">Reset progress</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">BEGINNER → CCNA</div>
+          <h1 id="pageTitle">Your Network Engineering Launchpad</h1>
+        </div>
+        <div class="streak-card"><span>🔥</span><div><b id="streak">1</b><small>day streak</small></div></div>
+      </header>
+      <div id="content"></div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
