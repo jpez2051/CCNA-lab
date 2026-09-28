@@ -1,43 +1,75 @@
-# CCNA Launchpad v1.1.3
+# CCNA Launchpad v1.1.4
 
-A beginner-first browser learning app for CCNA 200-301 study.
+An introductory networking study companion. This release improves feedback reliability; it does not turn the existing summaries into a comprehensive CCNA curriculum.
 
-## Live test site
-Once GitHub Pages finishes deployment, open:
+Live site: https://jpez2051.github.io/CCNA-lab/
 
-https://jpez2051.github.io/CCNA-lab/
+## What changed
 
-The Pages workflow deploys automatically whenever `main` changes, so the live site can be used on a phone while we test future versions.
+- Removed the day streak, mastery percentage, unsupported lesson-duration estimates, inflated accuracy score, and promised 12-week schedule.
+- Reading is self-reported, first answers are tracked per stable question ID, and guided exercises have separately verified records.
+- Explicit retries do not rewrite first answers. Repeated clicks cannot add attempts.
+- Mixed practice prioritizes least-practiced questions and shuffles ties. Three completed ten-question rounds reach all 23 questions in the current bank. Unanswered questions do not count as practiced.
+- Latest incorrect answers lead back to the relevant lesson.
+- The lab checker evaluates the current supported configuration and requires inspection after configuration changes. Changing a target clears current verification; a previously verified attempt remains historical evidence.
+- Route prefixes are calculated from validated contiguous subnet masks. The simulator explicitly does not simulate route installation, links, forwarding, OSPF neighbors, or interface ACL application.
+- Exact command hints are expandable rather than always visible.
+- Lab-associated lessons stay open after marking them read, preserving the learner's selected answer and scroll position.
+- Removed runtime hotfix overrides; curriculum, persistence, simulator, and UI are separate files.
 
-## Included
-- Beginner-guided course across all six CCNA domains
-- 20+ focused lessons with knowledge checks
-- Progress stored in browser localStorage
-- Mixed practice mode
-- Five Cisco-style interactive CLI labs
-- 12-week roadmap
-- Responsive UI
-- GitHub Pages deployment workflow
+## Progress migration
 
-## Design philosophy
-The application intentionally favors short conceptual lessons plus active recall and configuration over long passive lectures. It is not a replacement for real Cisco IOS, Packet Tracer, CML, GNS3, or EVE-NG; the built-in CLI is a learning simulator that covers a deliberately small command set.
+The existing ccnaLaunchpad storage key is retained. Schema version 2 preserves lesson reads and archives the original record under legacy. Previous aggregate quiz scores are not used in the new first-answer metric. Earlier lab completions remain in legacyLabsDone, but are not counted as verified by the corrected checker until repeated.
 
-## Version history
-- v1.1.3: lessons with an associated lab stay open after mastery. The Skill completion section confirms saved mastery and enables Run associated lab without losing the knowledge-check answer or scroll position. Lessons without labs still return to the course.
-- v1.1.2: mastery returns to the course with a highlighted next step; required labs remain pending until their checklist is complete. Lab completion is saved separately, mastered lessons remain available for review, and static-route practice follows its configuration prerequisite.
-- v1.1.1: beginner CLI lesson and lab prerequisites
-- v1.0.0: initial CCNA Launchpad application
-- v1.0.1: GitHub Pages deployment and phone-access testing workflow
+Question IDs such as f1:q1 should change when an assessment's meaning changes. Lab validation uses LAB_VALIDATION_VERSION independently of the application release number; bump it only when changing what counts as valid evidence.
 
-## Recommended next versions
-- Future: real topology canvas, packet animations, subnetting trainer, spaced repetition
-- v1.2.0: larger IOS command grammar, troubleshooting scenarios, lab scoring
-- v1.3.0: full mock exams, weak-topic analytics, bookmarks/notes, exportable progress
+Corrupt JSON is not silently overwritten. The user can continue in memory or explicitly reset. Save failures are surfaced in the interface. No backend or cloud sync is configured in this release.
 
-## v1.1.2 validation
-- Browser checks at desktop (1440px) and mobile (390px and 320px) widths cover mastery, course recommendations, review, reload persistence, lab prerequisites, and completion.
-- Existing lesson progress is preserved. Earlier versions did not save lab completion, so previous lab attempts cannot be inferred; those practicals will initially appear pending.
-- Course percentages measure lesson mastery; practical completion is shown separately.
+## Firebase direction
 
-## Important
-CCNA and Cisco are trademarks of Cisco and/or its affiliates. This project is an independent study aid and is not official Cisco training.
+ProgressStore provides asynchronous load, save, and clear methods. Writes are serialized with immutable snapshots. A future adapter can be installed before app startup with ProgressStore.use(adapter).
+
+Firebase Hosting alone will not synchronize learning records. The future cloud release needs an explicit Firebase project, authentication, a per-user data model (for example Firestore), ownership rules, local-to-cloud migration and conflict handling, and offline/error behavior. Do not embed service-account credentials in the static app. Existing local records must be offered for migration to the authenticated account, not silently discarded or merged between users.
+
+This boundary prepares the application code for that work; it is not a completed Firebase integration.
+
+## Development and testing
+
+No build step or production package dependencies are required. Serve the directory with a static HTTP server.
+
+Run deterministic regression checks with Node 22 or newer:
+
+    npm test
+
+Browser checks use Playwright. Install it separately, then run:
+
+    npm install --no-save --package-lock=false playwright@1.62.1
+    npx playwright install chromium
+    npm run test:browser
+
+Alternatively set PLAYWRIGHT_MODULE to an installed Playwright module path and BROWSER_PATH to a compatible browser executable. TEST_URL can point to the published site. Browser checks use isolated browser contexts and do not modify an existing learner profile. Screenshots go to .artifacts (or ARTIFACT_DIR).
+
+Checks cover:
+- False lab success, invalidation after changes, valid exit navigation, all IPv4 mask lengths, wrong route masks, and all five guided exercises.
+- Read vs. lab navigation, answer deduplication, first-answer persistence, review links, full practice-bank reachability.
+- Legacy migration, corrupt records, ordered adapter writes, save failures, and desktop/mobile widths of 1440, 390, and 320 pixels.
+
+GitHub Pages runs the deterministic tests before publishing and uploads only the six public site assets.
+
+## Next releases
+
+- v1.2.0: rebuild one complete foundations module with workplace context, explanations, worked examples, guided exercises, and independent checks.
+- v1.3.0: structured troubleshooting and external topology assignments.
+- v1.4.0: delayed review and portfolio evidence.
+- Future comprehensive release: audited coverage of an explicitly selected Cisco exam blueprint.
+
+## History
+
+- v1.1.4: trustworthy feedback, removal of engagement counters, validated guided practice, and persistence boundary.
+- v1.1.3: keep lessons with associated labs open after marking completion.
+- v1.1.2: course recommendations and separate lab completion records.
+- v1.1.1: prerequisite reading and introductory CLI lesson.
+- v1.0.1: GitHub Pages deployment.
+- v1.0.0: initial prototype.
+
+CCNA and Cisco are trademarks of Cisco and/or its affiliates. This is an independent study aid, not official Cisco training.
