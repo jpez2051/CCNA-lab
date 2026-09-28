@@ -8,7 +8,7 @@ function load(raw = null) {
   const context = vm.createContext({localStorage: {
     getItem: () => stored, setItem: (_,v) => {stored=v;}, removeItem: () => {stored=null;}
   }});
-  for (const file of ['curriculum.js','lab-engine.js','progress-store.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
+  for (const file of ['curriculum.js','foundations.js','lab-engine.js','progress-store.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);
   const api = vm.runInContext('({LabSession,maskPrefix,ProgressStore,lessons,quizBank})',context);
   return {...api,stored:()=>stored};
 }

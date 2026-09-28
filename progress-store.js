@@ -11,6 +11,7 @@ const ProgressStore = (() => {
       labsDone: [],
       labEvidence: {},
       questions: {},
+      foundations: normalizeFoundations(old.foundations),
       legacyLabsDone: strings(current ? old.legacyLabsDone : old.labsDone),
       legacy: current ? old.legacy || null : Object.keys(old).length ? old : null
     };

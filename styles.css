@@ -37,6 +37,23 @@ button,input{font:inherit}.app-shell{display:grid;grid-template-columns:255px 1f
 .quiz-option:disabled{cursor:default}
 .term-output{overflow-wrap:anywhere}
 .hero h2,.module strong,.road-body{overflow-wrap:anywhere}
+.sample-output{white-space:pre-wrap;overflow-wrap:anywhere;background:#07111f;padding:16px;border-radius:10px;font-size:13px}
+.request-path{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.path-step[aria-pressed=true]{border-color:var(--cyan);color:var(--cyan)}
+textarea,.scenario-field input{box-sizing:border-box;width:100%;background:#07111f;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:12px;font:inherit;margin:8px 0 14px}
+textarea{resize:vertical}
+.answer-line{display:block;margin:10px 0;padding:6px 0}
+.scenario-card{max-width:850px}
+.scenario-card fieldset,#foundationDiagnostic fieldset{border:1px solid var(--line);border-radius:10px;padding:15px;margin:20px 0}
+.scenario-field{display:block;margin:14px 0}
+.lesson-card details{padding:10px 0}
+.lesson-card a{color:var(--cyan)}
+.lesson-layout>*{min-width:0}
+.lesson-card code{overflow-wrap:anywhere}
+textarea{min-width:0}
+.workshop-unit{grid-template-columns:52px minmax(0,1fr)}
+.scenario-card li{margin-bottom:12px;overflow-wrap:anywhere}
+@media(max-width:600px){.request-path{grid-template-columns:1fr}.workshop-unit{grid-template-columns:28px minmax(0,1fr)}.scenario-card{padding:12px}.hero{padding:20px}textarea,.scenario-field input{font-size:16px}}
 main,.terminal-wrap>*{min-width:0}.term-input{min-width:0}
 #labSelect{max-width:100%;white-space:normal}
 @media(max-width:600px){main{padding:12px}.topbar{flex-wrap:wrap}.section-head{flex-wrap:wrap;gap:12px}.module{gap:8px;padding:12px;grid-template-columns:28px minmax(0,1fr)}.module>.badge{grid-column:2;justify-self:start}.next-step .btn{width:100%;white-space:normal}}

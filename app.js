@@ -1,4 +1,4 @@
-const VERSION = '1.1.4';
+const VERSION = '1.2.0';
 let state, currentView = 'dashboard', currentLesson = null;
 let quizQuestions = [], quizIndex = 0, quizAnswers = [];
 let quizAnswered = false;
@@ -36,6 +36,7 @@ function render() {
   if (currentView === 'labs') renderLabs();
   if (currentView === 'practice') renderPractice();
   if (currentView === 'roadmap') renderRoadmap();
+  if (currentView === 'foundations') renderFoundations();
 }
 function readCount(list = lessons) { return list.filter(l => state.done.includes(l.id)).length; }
 function nextCourseStep() {
@@ -67,7 +68,7 @@ function renderDashboard() {
   const historical = state.legacyLabsDone.filter(id => labs[id] && !state.labsDone.includes(id));
   content.innerHTML = '<section class="hero"><span class="pill">LEARN AT YOUR PACE</span><h2>Understand it. Practice it. Explain it.</h2>' +
     '<p>Build on the networking language you already know. These introductory summaries and guided command exercises are a starting point, not a complete CCNA course or an exam-readiness assessment.</p>' +
-    '<div class="cta-row"><button class="btn btn-primary" id="continueBtn">Continue learning</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div></section>' +
+    '<div class="cta-row"><button class="btn btn-primary" id="foundationStart">Start foundations workshop</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: four connected foundations units with worked examples, guided practice, fresh scenarios, and reflection notes.</p></section>' +
     '<div class="section-head"><div><h3>Your recorded work</h3><p>Reading, answering, and guided practice are different kinds of progress.</p></div></div>' +
     '<div class="grid grid-3"><div class="card metric"><b>' + readCount() + ' / ' + lessons.length + '</b><small>lessons marked read · self-reported</small></div>' +
     '<div class="card metric"><b>' + (answered.length ? firstCorrect + ' / ' + answered.length : 'No answers yet') + '</b><small>distinct questions correct on your first answer</small><p class="q-meta">Retries and practice reuse do not change this first-answer record.</p></div>' +
@@ -82,6 +83,7 @@ function renderDashboard() {
     '<div class="section-head"><h3>Progress storage</h3></div><div class="card"><p>Your progress is currently stored in this browser. Clearing browser data removes it.</p><button class="btn btn-secondary" id="resetProgressMain">Reset progress</button></div>';
   document.querySelector('#resetProgressMain').onclick = resetProgress;
   document.querySelector('#continueBtn').onclick = () => setView('learn');
+  document.querySelector('#foundationStart').onclick = () => setView('foundations');
   document.querySelector('#allLessons').onclick = () => setView('learn');
   document.querySelector('#labBtn').onclick = () => setView('labs');
   document.querySelector('#practiceBtn').onclick = () => setView('practice');
@@ -255,7 +257,7 @@ function showQuizResult() {
 function renderRoadmap() {
   pageTitle.textContent = 'Build toward independent skills';
   const stages = [
-    ['Understand the foundations','Explain how a client reaches an application. Interpret an IP address, subnet mask, gateway, and DNS settings.','Current app: introductory readings and recognition questions. Worked scenarios and independent exercises are still needed.'],
+    ['Understand the foundations','Explain how a client reaches an application. Interpret an IP address, subnet mask, gateway, and DNS settings.','Available: the four-unit foundations workshop includes worked examples, guided practice, subnet calculations, and limited first-submission scenarios. Broader curriculum coverage is still needed.'],
     ['Practice configuration','Read CLI prompts, enter a configuration, inspect the output, and explain what each command changes.','Current app: five limited, guided command exercises. Use a network simulator for connectivity practice.'],
     ['Diagnose unfamiliar problems','Gather evidence, test a hypothesis, correct a fault, and verify the result.','Planned: structured troubleshooting assignments and topology exercises.'],
     ['Retain and demonstrate','Return to a skill later and solve a different problem without instructions. Document the reasoning for your portfolio.','Planned: delayed review, independent challenges, and portfolio evidence.'],

@@ -10,17 +10,20 @@ const server=http.createServer((req,res)=>{
   catch{res.writeHead(404);res.end();}
 });
 async function command(page,text){await page.locator('#termInput').fill(text);await page.locator('#termInput').press('Enter');}
-async function noOverflow(page,name){assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),name+' overflow');}
+async function noOverflow(page,name){
+  const extra=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth?[]:[...document.querySelectorAll('#content *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,class:e.className,text:e.textContent.slice(0,90),width:e.getBoundingClientRect().width})));
+  assert.equal(extra.length,0,name+' overflow: '+JSON.stringify(extra));
+}
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   const url=process.env.TEST_URL || 'http://127.0.0.1:'+server.address().port+'/';
   const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
   try{
-    for(const width of [1440,390,320]){
+    for(const width of (process.env.TEST_WIDTHS?process.env.TEST_WIDTHS.split(',').map(Number):[1440,390,320])){
       const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
       await page.goto(url);await page.locator('#continueBtn').waitFor();
-      assert.equal(await page.title(),'CCNA Launchpad v1.1.4');
+      assert.equal(await page.title(),'CCNA Launchpad v1.2.0');
       assert.equal(await page.locator('#streak,.streak-card').count(),0);
       assert(!/day streak|lessons mastered|knowledge-check accuracy/.test(await page.locator('body').innerText()));
       await noOverflow(page,'dashboard');
@@ -97,7 +100,52 @@ async function noOverflow(page,name){assert(await page.evaluate(()=>document.doc
       await page.locator('[data-view=dashboard]').click();assert(await page.locator('.review-lesson').count()>0);
       await page.locator('[data-view=roadmap]').click();assert(!/12.WEEK|Weeks 1/.test(await page.locator('#content').innerText()));
       await noOverflow(page,'roadmap');
-      assert.deepEqual(errors,[]);await page.close();console.log('PASS browser flows at '+width+'px');
+      await page.locator('[data-view=foundations]').click();
+      await page.locator('#diagnosticStart').click();
+      for(let i=0;i<4;i++)await page.locator('input[name=d'+i+'][value="0"]').check();
+      await page.locator('#foundationDiagnostic .btn-primary').click();
+      assert.match(await page.locator('#diagnosticResult').innerText(),/review recommended/);
+      await page.locator('#diagnosticContinue').click();await noOverflow(page,'workshop');
+      await page.screenshot({path:path.join(artifacts,'workshop-'+width+'.png')});
+      for(const id of ['journey','settings','subnets','triage']){
+        await page.locator('.workshop-unit[data-unit='+id+']').click();
+        if(id==='journey'){await page.locator('.path-step').nth(2).click();assert.match(await page.locator('#pathExplanation').innerText(),/gateway/);}
+        await page.locator('#readFoundation').click();
+        await page.locator('#foundationNote').fill('My reasoning for '+id+' <example>: distinguish an observation from a conclusion.');
+        await page.locator('#saveFoundationNote').click();await page.locator('#noteStatus').filter({hasText:'Reflection saved'}).waitFor();
+        await noOverflow(page,'foundation reading '+id);
+        await page.locator('#challengeFoundation').click();await noOverflow(page,'scenario');
+        const fill=async wrong=>{
+          const s=await page.evaluate(()=>foundationAttempt.scenario);
+          for(const [key,,value] of s.fields)await page.locator('[name='+key+']').fill(wrong&&key==='network'?'1.2.3.4':value);
+          for(const name of ['choice','secondChoice'])if(s[name])await page.locator('input[name='+name+'][value="'+s[name].a+'"]').check();
+        };
+        if(id==='subnets'){
+          await page.locator('#foundationHint').click();await fill(true);await page.locator('#submitFoundationScenario').click();
+          assert.match(await page.locator('#foundationFeedback').innerText(),/Review the reasoning/);
+          assert(await page.evaluate(()=>state.foundations.attempts.at(-1).helpUsed));
+          const before=await page.evaluate(()=>state.foundations.attempts.length);
+          await page.locator('#foundationScenario').evaluate(el=>el.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+          assert.equal(await page.evaluate(()=>state.foundations.attempts.length),before);
+          await page.locator('#newFoundationScenario').click();
+        }
+        await fill(false);await page.locator('#submitFoundationScenario').click();
+        assert.match(await page.locator('#foundationFeedback').innerText(),/All answers correct/);
+        assert.equal(await page.evaluate(()=>state.foundations.attempts.at(-1).helpUsed),false);
+        if(id==='subnets')await page.screenshot({path:path.join(artifacts,'subnet-feedback-'+width+'.png'),fullPage:true});
+        await page.locator('#scenarioWorkshop').click();
+      }
+      assert.equal(await page.evaluate(()=>state.foundations.read.length),4);
+      assert.equal(await page.evaluate(()=>state.foundations.attempts.length),5);
+      const downloadPromise=page.waitForEvent('download');await page.locator('#exportFoundation').click();const download=await downloadPromise;
+      assert.equal(download.suggestedFilename(),'networking-foundations-notes.md');
+      await download.saveAs(path.join(artifacts,'notes-'+width+'.md'));
+      assert.match(fs.readFileSync(path.join(artifacts,'notes-'+width+'.md'),'utf8'),/not a certification/);
+      await page.reload();await page.locator('#continueBtn').waitFor();
+      assert.equal(await page.evaluate(()=>state.foundations.read.length),4);assert.equal(await page.evaluate(()=>state.foundations.attempts.length),5);
+      await page.locator('[data-view=foundations]').click();await page.locator('.workshop-unit[data-unit=journey]').click();
+      assert.match(await page.locator('#foundationNote').inputValue(),/<example>/);assert.equal(await page.locator('example').count(),0);
+      assert.deepEqual(errors,[]);await page.close();console.log('PASS browser flows and foundations workshop at '+width+'px');
     }
     const legacy=await browser.newPage();
     await legacy.addInitScript(()=>{if(!localStorage.ccnaLaunchpad)localStorage.ccnaLaunchpad=JSON.stringify({done:['f1','cli0'],labsDone:['l1'],quizTotal:99,quizCorrect:99});});

@@ -1,10 +1,23 @@
-# CCNA Launchpad v1.1.4
+# CCNA Launchpad v1.2.0
 
-An introductory networking study companion. This release improves feedback reliability; it does not turn the existing summaries into a comprehensive CCNA curriculum.
+An introductory networking study companion. The first complete foundations workshop adds deeper instruction to the trustworthy-feedback changes in v1.1.4. The rest of the CCNA summaries still need curriculum development; this is not a comprehensive exam course.
 
 Live site: https://jpez2051.github.io/CCNA-lab/
 
 ## What changed
+
+### v1.2.0 foundations workshop
+
+- Four connected units: following an application request, reading host settings, subnet boundaries, and evidence-based name-resolution troubleshooting.
+- Optional starting check recommends a unit without locking learners out.
+- Original workplace scenarios, step-by-step worked examples, a plain-language glossary, and a request-path explainer.
+- Guided scratch work and expandable hints/solutions are separate from fresh first-submission scenarios.
+- Generated /24–/29 subnet exercises require network, broadcast, first/last usable address, and host count. Other scenarios check next-hop reasoning, host configuration, and troubleshooting decisions.
+- Feedback explains each result. A hint marks the attempt as helped; only one submission is recorded per scenario. “No in-app hint” is not a claim that outside help was absent.
+- Reflections are saved as ungraded notes. Markdown downloads include notes and up to 100 recent scenario records, explicitly not a certification.
+- Workshop progress is distinct from the 23 short lesson summaries. Existing v1.1.4 lab evidence remains valid because the lab-validation version is unchanged.
+
+### v1.1.4 reliability changes
 
 - Removed the day streak, mastery percentage, unsupported lesson-duration estimates, inflated accuracy score, and promised 12-week schedule.
 - Reading is self-reported, first answers are tracked per stable question ID, and guided exercises have separately verified records.
@@ -54,16 +67,18 @@ Checks cover:
 - Read vs. lab navigation, answer deduplication, first-answer persistence, review links, full practice-bank reachability.
 - Legacy migration, corrupt records, ordered adapter writes, save failures, and desktop/mobile widths of 1440, 390, and 320 pixels.
 
-GitHub Pages runs the deterministic tests before publishing and uploads only the six public site assets.
+GitHub Pages runs the deterministic tests before publishing and uploads only the seven public site assets.
 
 ## Next releases
 
-- v1.2.0: rebuild one complete foundations module with workplace context, explanations, worked examples, guided exercises, and independent checks.
+- Continue the foundations approach across the remaining curriculum, with learner feedback before broad expansion.
 - v1.3.0: structured troubleshooting and external topology assignments.
 - v1.4.0: delayed review and portfolio evidence.
 - Future comprehensive release: audited coverage of an explicitly selected Cisco exam blueprint.
 
 ## History
+
+- v1.2.0: four-unit foundations workshop, optional diagnostic, generated scenarios, and reflection notes.
 
 - v1.1.4: trustworthy feedback, removal of engagement counters, validated guided practice, and persistence boundary.
 - v1.1.3: keep lessons with associated labs open after marking completion.
