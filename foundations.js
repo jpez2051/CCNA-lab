@@ -58,11 +58,11 @@ function normalizeFoundations(raw) {
     diagnostic:value.diagnostic && Array.isArray(value.diagnostic.correct) && value.diagnostic.correct.length===4 && value.diagnostic.correct.every(x=>typeof x==='boolean')
       ? {correct:value.diagnostic.correct.map(Boolean),at:typeof value.diagnostic.at==='string'?value.diagnostic.at:null}:null,
     notes:Object.fromEntries(ids.filter(id=>typeof value.notes?.[id]==='string').map(id=>[id,value.notes[id].slice(0,3000)])),
-    attempts:Array.isArray(value.attempts)?value.attempts.filter(a=>ids.includes(a.unit) && a.version==='1.2.0' && typeof a.correct==='boolean' && typeof a.helpUsed==='boolean')
-      .slice(-100).map(a=>({unit:a.unit,version:a.version,correct:a.correct,helpUsed:a.helpUsed,at:typeof a.at==='string'?a.at:null,summary:typeof a.summary==='string'?a.summary.slice(0,500):''})): []
+    attempts:Array.isArray(value.attempts)?value.attempts.filter(a=>ids.includes(a.unit) && ['1.2.0','1.3.0'].includes(a.version) && typeof a.correct==='boolean' && typeof a.helpUsed==='boolean')
+      .slice(-100).map(a=>({unit:a.unit,version:a.version,correct:a.correct,helpUsed:a.helpUsed,at:typeof a.at==='string'?a.at:null,summary:typeof a.summary==='string'?a.summary.slice(0,500):'',responses:a.responses&&typeof a.responses==='object'?Object.fromEntries(Object.entries(a.responses).slice(0,10).map(([k,v])=>[k,String(v).slice(0,500)])):{},checks:Array.isArray(a.checks)?a.checks.slice(0,10).map(c=>({label:String(c.label).slice(0,300),correct:c.correct===true,expected:String(c.expected).slice(0,500)})):[]})): []
   };
 }
-function foundationScenario(unit,random=Math.random) {
+function originalFoundationScenario(unit,random=Math.random) {
   const pick=n=>Math.floor(random()*n), octet=10+pick(180), host=20+pick(80);
   if(unit==='subnets'){
     const prefix=24+pick(6),block=2**(32-prefix),start=pick(256/block)*block,ip=start+1+pick(block-2),base='192.168.'+octet+'.';
@@ -91,6 +91,24 @@ function foundationScenario(unit,random=Math.random) {
     secondChoice:{q:'What should be verified before closing this incident?',opts:['Only a successful ping','Only that a setting was changed','The intended application workflow by its hostname, with before/after evidence'],a:2},
     hint:'Choose the explanation supported by the outputs, and then test the user’s actual workflow.',
     explain:mismatch?'The configuration mismatch and contrasting resolver results support investigating that resolver path. They do not prove the application itself is healthy.':'DNS and service connectivity succeeded in these observations. The explicit account error points toward authentication; it does not justify changing the network mask.'};
+}
+function foundationScenario(unit,random=Math.random) {
+  let s=originalFoundationScenario(unit,random);
+  if(unit==='journey'){
+    const n=10+Math.floor(random()*180),near=random()<0.5,cached=random()<0.5,base='192.168.'+n+'.',destination=near?base+'80':'10.'+n+'.0.50',neighbor=near?destination:base+'1';
+    s={unit,summary:(near?'Local':'Remote')+' destination '+destination+(cached?' with cached ARP':' without cached ARP'),prompt:'Client '+base+'20/24, gateway '+base+'1, destination '+destination+'. Assume ordinary Ethernet, working routes, no NAT, and '+(cached?'a valid cached MAC entry for the next neighbor.':'no cached MAC entry for the next neighbor.'),fields:[['destination','Final packet destination IP',destination],['neighbor','IP of the first-hop neighbor',neighbor]],choice:{q:'What happens on the first link?',opts:[(cached?'Use the cached MAC for ':'Resolve with ARP the MAC for ')+(near?'the local destination':'the gateway'),cached?'Always send ARP despite the valid cache':'Use an unknown destination MAC without resolution','Replace the packet destination IP with the switch IP'],a:0},hint:'Use the mask to decide local or remote, then consider the existing ARP cache.',explain:'The packet targets '+destination+'. The first local neighbor is '+neighbor+'. '+(cached?'Its valid cache entry avoids a new ARP request.':'ARP obtains that local neighbor’s MAC.')};
+  }
+  if(unit==='triage'&&random()<0.5){
+    const samples=[
+      ['Ping failure alone','A user reports one failed ping to an application server. No other tests have been collected.','Gather scope and test DNS, relevant connectivity and the actual service before deciding the cause','A failed ICMP test alone cannot distinguish filtering, path problems and endpoint behavior.'],
+      ['TCP connection refused','The expected DNS answer is returned and the server answers ICMP, but a TCP connection to port 443 is refused.','Investigate the web listener and relevant host policy, retaining the successful IP tests','A refusal narrows the problem beyond basic name resolution; it does not justify random address changes.'],
+      ['Missing return route','A capture shows the request reaching the server. Its router has no route back to the client subnet.','Repair the approved return path and verify both directions and the application','Forward delivery does not establish bidirectional communication.'],
+      ['Physical link down','The active wired adapter reports media disconnected. A known-working peer has a live link on its own port.','Inspect this client cable, port and interface before changing DNS','No IP setting can carry frames over this disconnected link.']
+    ],t=samples[Math.floor(random()*samples.length)];
+    s={unit,summary:t[0],prompt:t[1],fields:[],choice:{q:'Which next step fits the evidence?',opts:[t[2],'Change the DNS server before collecting further evidence','Declare that the application account must be locked'],a:0},secondChoice:{q:'What completes verification?',opts:['A single successful ping','A setting was changed','The original workflow plus a relevant control test, with before/after evidence'],a:2},hint:'Locate what the observations establish, and what remains untested.',explain:t[3]};
+  }
+  for(const name of ['choice','secondChoice'])if(s[name]){const q=s[name],order=q.opts.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}s[name]={...q,opts:order.map(i=>q.opts[i]),a:order.indexOf(q.a)};}
+  return s;
 }
 function gradeFoundation(scenario,answers) {
   const checks=scenario.fields.map(([id,label,expected])=>({label,correct:String(answers[id]||'').trim()===expected,expected}));
@@ -156,12 +174,12 @@ function startFoundationScenario(id) {
   const choice=(q,name)=>q?'<fieldset><legend>'+q.q+'</legend>'+q.opts.map((o,i)=>'<label class="answer-line"><input type="radio" name="'+name+'" value="'+i+'" required> '+o+'</label>').join('')+'</fieldset>':'';
   content.innerHTML='<div class="card scenario-card"><span class="pill">FRESH SCENARIO</span><h2>Solve it before viewing feedback</h2><p>'+s.prompt+'</p><p class="q-meta">First submission only for this scenario. Using the hint is welcome and will label this attempt as helped. After feedback, try a new scenario.</p><form id="foundationScenario">'+
     s.fields.map(([key,label])=>'<label class="scenario-field" for="answer-'+key+'">'+label+'<input id="answer-'+key+'" name="'+key+'" required autocomplete="off" inputmode="'+(key==='hosts'?'numeric':'decimal')+'"></label>').join('')+
-    choice(s.choice,'choice')+choice(s.secondChoice,'secondChoice')+'<div class="cta-row"><button class="btn btn-primary" id="submitFoundationScenario">Check my reasoning</button><button type="button" class="btn btn-secondary" id="foundationHint">Show a hint</button></div></form><p id="foundationHintText" role="status"></p><div id="foundationFeedback" role="status"></div><div class="cta-row"><button class="btn btn-secondary" id="returnFoundationUnit">Return to explanation</button><button class="btn btn-secondary" id="scenarioWorkshop">Workshop overview</button></div></div>';
+    choice(s.choice,'choice')+choice(s.secondChoice,'secondChoice')+'<div class="cta-row"><button class="btn btn-primary" id="submitFoundationScenario">Check these answers</button><button type="button" class="btn btn-secondary" id="foundationHint">Show a hint</button></div></form><p id="foundationHintText" role="status"></p><div id="foundationFeedback" role="status"></div><div class="cta-row"><button class="btn btn-secondary" id="returnFoundationUnit">Return to explanation</button><button class="btn btn-secondary" id="scenarioWorkshop">Workshop overview</button></div></div>';
   document.querySelector('#foundationHint').onclick=()=>{foundationAttempt.helpUsed=true;document.querySelector('#foundationHintText').textContent=s.hint+' This attempt will be recorded as helped.';};
   document.querySelector('#foundationScenario').onsubmit=e=>{
     e.preventDefault();if(foundationAttempt.submitted)return;foundationAttempt.submitted=true;
     const answers=Object.fromEntries(new FormData(e.target)),result=gradeFoundation(s,answers);
-    state.foundations.attempts.push({unit:id,version:'1.2.0',correct:result.correct,helpUsed:foundationAttempt.helpUsed,at:new Date().toISOString(),summary:s.summary});
+    state.foundations.attempts.push({unit:id,version:'1.3.0',correct:result.correct,helpUsed:foundationAttempt.helpUsed,at:new Date().toISOString(),summary:s.summary,responses:answers,checks:result.checks});
     state.foundations.attempts=state.foundations.attempts.slice(-100);save();
     e.target.querySelectorAll('input,button').forEach(el=>el.disabled=true);
     document.querySelector('#foundationFeedback').innerHTML='<h3>'+(result.correct?'All answers correct for this scenario':'Review the reasoning below')+'</h3><p>'+(foundationAttempt.helpUsed?'Recorded as a helped attempt.':'Recorded as a first submission without the in-app hint. This does not establish long-term retention.')+'</p><ul>'+

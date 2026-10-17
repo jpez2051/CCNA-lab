@@ -29,7 +29,7 @@ test('subnet scenario answers match independent bitwise arithmetic across all su
   }
 });
 test('both triage variants require end-to-end verification',()=>{
-  for(const r of [0.1,0.9]){const s=foundationScenario('triage',()=>r);assert.equal(s.secondChoice.a,2);assert.equal(gradeFoundation(s,answers(s)).correct,true);}
+  for(const r of [0.1,0.9]){const s=foundationScenario('triage',()=>r);assert.match(s.secondChoice.opts[s.secondChoice.a],/workflow/);assert.equal(gradeFoundation(s,answers(s)).correct,true);}
 });
 test('foundation progress normalization retains notes and valid evidence, bounds history',()=>{
   const p=normalizeFoundations({read:['journey','bad','journey'],notes:{journey:'<script>example</script>'},attempts:Array.from({length:105},()=>({unit:'subnets',version:'1.2.0',correct:true,helpUsed:false,summary:'example'}))});

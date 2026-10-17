@@ -23,7 +23,7 @@ async function noOverflow(page,name){
       const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
       await page.goto(url);await page.locator('#continueBtn').waitFor();
-      assert.equal(await page.title(),'CCNA Launchpad v1.2.0');
+      assert.equal(await page.title(),'CCNA Launchpad v1.3.0');
       assert.equal(await page.locator('#streak,.streak-card').count(),0);
       assert(!/day streak|lessons mastered|knowledge-check accuracy/.test(await page.locator('body').innerText()));
       await noOverflow(page,'dashboard');
@@ -145,7 +145,43 @@ async function noOverflow(page,name){
       assert.equal(await page.evaluate(()=>state.foundations.read.length),4);assert.equal(await page.evaluate(()=>state.foundations.attempts.length),5);
       await page.locator('[data-view=foundations]').click();await page.locator('.workshop-unit[data-unit=journey]').click();
       assert.match(await page.locator('#foundationNote').inputValue(),/<example>/);assert.equal(await page.locator('example').count(),0);
-      assert.deepEqual(errors,[]);await page.close();console.log('PASS browser flows and foundations workshop at '+width+'px');
+      await page.locator('[data-view=path]').click();await noOverflow(page,'learning path');
+      await page.locator('[data-stage=devices]').click();await page.locator('#courseRead').click();
+      assert(await page.locator('#courseCheck').isVisible());assert.match(await page.locator('#courseReadStatus').innerText(),/now apply/);
+      await page.locator('[data-tool=sandbox]').click();await noOverflow(page,'network sandbox');
+      await page.locator('[data-probe=web]').click();assert.match(await page.locator('#probeOutput').innerText(),/Write a prediction/);
+      await page.locator('#sandboxConfig [name=service]').uncheck();await page.locator('#sandboxConfig button').click();
+      await page.locator('#sandboxPrediction').fill('I expect ping to work even though the web listener is stopped.');await page.locator('[data-probe=server]').click();assert.match(await page.locator('#probeOutput').innerText(),/ICMP reply/);
+      await page.locator('#sandboxPrediction').fill('I expect the application connection to fail.');await page.locator('[data-probe=web]').click();assert.match(await page.locator('#probeOutput').innerText(),/connection refused/);
+      await page.locator('#sandboxDiagnosis').fill('ICMP succeeded but the application refused a connection.');await page.locator('#sandboxRecord').click();assert.match(await page.locator('#sandboxResult').innerText(),/Run successful/);
+      await page.locator('#sandboxConfig [name=service]').check();await page.locator('#sandboxConfig button').click();
+      for(const probe of ['peer','web']){await page.locator('#sandboxPrediction').fill('After restoring service, I expect this control test to succeed.');await page.locator('[data-probe='+probe+']').click();}
+      await page.locator('#sandboxRecord').click();assert.match(await page.locator('#sandboxResult').innerText(),/Outcome recorded/);
+      await page.screenshot({path:path.join(artifacts,'sandbox-'+width+'.png'),fullPage:true});
+      await page.locator('#independentSandbox').click();
+      await page.locator('#sandboxPrediction').fill('The reported application problem should produce failure evidence.');await page.locator('[data-probe=web]').click();assert.match(await page.locator('#probeOutput').innerText(),/failed/);
+      const fault=await page.evaluate(()=>sandbox.fault);await page.locator('#targetedRepair').selectOption(fault);await page.locator('#applyTargetedRepair').click();
+      for(const probe of ['peer','web']){await page.locator('#sandboxPrediction').fill('The targeted repair should restore this test.');await page.locator('[data-probe='+probe+']').click();}
+      await page.locator('#sandboxDiagnosis').fill('I retained the failing test, repaired its cause, and verified local and application controls.');await page.locator('#sandboxRecord').click();
+      assert.equal(await page.evaluate(()=>state.learning.records.at(-1).helped),false);assert.match(await page.evaluate(()=>state.learning.records.at(-1).responses.tests),/"ok":false/);
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=subnet]').click();
+      await page.locator('#subnetTool [name=prediction]').fill('172.16.32.0');await page.locator('#subnetTool button').click();assert.match(await page.locator('#subnetOutput').innerText(),/prediction was correct/);await noOverflow(page,'binary tool');
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=route]').click();await noOverflow(page,'route tool');
+      await page.locator('#routeTool input').first().check();await page.locator('#routeTool textarea').fill('Compare matching prefix lengths before administrative distance.');await page.locator('#routeTool button').click();assert.match(await page.locator('#routeOutput').innerText(),/longest match/);
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=packet]').click();await noOverflow(page,'external practicals');
+      await page.locator('[data-tool=notebook]').first().click();await page.locator('[name=scope]').fill('A fictional client <script> is unable to use a service.');await page.locator('#learningNotes button').click();
+      await page.locator('#learningNotesStatus').filter({hasText:'Saved'}).waitFor();await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=notebook]').click();assert.match(await page.locator('[name=scope]').inputValue(),/<script>/);await noOverflow(page,'notebook');
+      const backup=page.waitForEvent('download');await page.locator('#backupLearning').click();assert.equal((await backup).suggestedFilename(),'ccna-launchpad-progress-v1.3.0.json');
+      await page.locator('[data-tool=coverage]').click();assert.equal(await page.locator('[data-cover-stage]').count(),29);await noOverflow(page,'coverage');
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=A]').click();
+      assert.equal(await page.locator('#examForm fieldset').count(),20);assert.equal(await page.locator('[data-remediate]').count(),0);
+      await page.locator('#examForm input').first().check();const deadline=await page.evaluate(()=>state.learning.exam.deadline);
+      await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=assessment]').click();await page.locator('#resumeAssessment').click();assert.equal(await page.evaluate(()=>state.learning.exam.deadline),deadline);assert.equal(await page.locator('#examForm input:checked').count(),1);await noOverflow(page,'assessment');
+      for(const field of await page.locator('#examForm fieldset').all())await field.locator('input').first().check();await page.locator('#submitExam').click();assert.equal(await page.locator('[data-remediate]').count(),20);await noOverflow(page,'assessment feedback');
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=A]').click();assert.match(await page.locator('#content').innerText(),/Exposed practice/);
+      await page.evaluate(async()=>{state.learning.exam.started=Date.now()-31*60000;state.learning.exam.deadline=state.learning.exam.started+1800000;await save();});
+      await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=assessment]').click();await page.locator('#resumeAssessment').click();assert.equal(await page.locator('#examForm').count(),0);assert.equal(await page.locator('[data-remediate]').count(),20);
+      assert.deepEqual(errors,[]);await page.close();console.log('PASS existing and v1.3 learning flows at '+width+'px');
     }
     const legacy=await browser.newPage();
     await legacy.addInitScript(()=>{if(!localStorage.ccnaLaunchpad)localStorage.ccnaLaunchpad=JSON.stringify({done:['f1','cli0'],labsDone:['l1'],quizTotal:99,quizCorrect:99});});

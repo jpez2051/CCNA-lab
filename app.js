@@ -1,4 +1,4 @@
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 let state, currentView = 'dashboard', currentLesson = null;
 let quizQuestions = [], quizIndex = 0, quizAnswers = [];
 let quizAnswered = false;
@@ -31,6 +31,7 @@ function setView(view) { activate(view); currentLesson = null; render(); window.
 function openLesson(id) { activate('learn'); currentLesson = id; renderLesson(id); window.scrollTo(0,0); }
 function launchLab(id) { activate('labs'); currentLesson = null; renderLabs(id); window.scrollTo(0,0); }
 function render() {
+  if (currentView === 'path') renderLearningPath();
   if (currentView === 'dashboard') renderDashboard();
   if (currentView === 'learn') currentLesson ? renderLesson(currentLesson) : renderLearn();
   if (currentView === 'labs') renderLabs();
@@ -67,8 +68,8 @@ function renderDashboard() {
   const step = nextCourseStep();
   const historical = state.legacyLabsDone.filter(id => labs[id] && !state.labsDone.includes(id));
   content.innerHTML = '<section class="hero"><span class="pill">LEARN AT YOUR PACE</span><h2>Understand it. Practice it. Explain it.</h2>' +
-    '<p>Build on the networking language you already know. These introductory summaries and guided command exercises are a starting point, not a complete CCNA course or an exam-readiness assessment.</p>' +
-    '<div class="cta-row"><button class="btn btn-primary" id="foundationStart">Start foundations workshop</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: four connected foundations units with worked examples, guided practice, fresh scenarios, and reflection notes.</p></section>' +
+    '<p>Begin with devices and cables, then build working networks, investigate faults, and explain the evidence. The learning path connects introductions, tools, practicals, and limited assessments.</p>' +
+    '<div class="cta-row"><button class="btn btn-primary" id="learningPathStart">Start the learning path</button><button class="btn btn-secondary" id="foundationStart">Foundations applications</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: beginner path, network sandbox, subnet and route tools, Packet Tracer build sheets, evidence notebook, and two pilot assessment forms.</p></section>' +
     '<div class="section-head"><div><h3>Your recorded work</h3><p>Reading, answering, and guided practice are different kinds of progress.</p></div></div>' +
     '<div class="grid grid-3"><div class="card metric"><b>' + readCount() + ' / ' + lessons.length + '</b><small>lessons marked read · self-reported</small></div>' +
     '<div class="card metric"><b>' + (answered.length ? firstCorrect + ' / ' + answered.length : 'No answers yet') + '</b><small>distinct questions correct on your first answer</small><p class="q-meta">Retries and practice reuse do not change this first-answer record.</p></div>' +
@@ -83,6 +84,7 @@ function renderDashboard() {
     '<div class="section-head"><h3>Progress storage</h3></div><div class="card"><p>Your progress is currently stored in this browser. Clearing browser data removes it.</p><button class="btn btn-secondary" id="resetProgressMain">Reset progress</button></div>';
   document.querySelector('#resetProgressMain').onclick = resetProgress;
   document.querySelector('#continueBtn').onclick = () => setView('learn');
+  document.querySelector('#learningPathStart').onclick = () => setView('path');
   document.querySelector('#foundationStart').onclick = () => setView('foundations');
   document.querySelector('#allLessons').onclick = () => setView('learn');
   document.querySelector('#labBtn').onclick = () => setView('labs');
@@ -259,8 +261,8 @@ function renderRoadmap() {
   const stages = [
     ['Understand the foundations','Explain how a client reaches an application. Interpret an IP address, subnet mask, gateway, and DNS settings.','Available: the four-unit foundations workshop includes worked examples, guided practice, subnet calculations, and limited first-submission scenarios. Broader curriculum coverage is still needed.'],
     ['Practice configuration','Read CLI prompts, enter a configuration, inspect the output, and explain what each command changes.','Current app: five limited, guided command exercises. Use a network simulator for connectivity practice.'],
-    ['Diagnose unfamiliar problems','Gather evidence, test a hypothesis, correct a fault, and verify the result.','Planned: structured troubleshooting assignments and topology exercises.'],
-    ['Retain and demonstrate','Return to a skill later and solve a different problem without instructions. Document the reasoning for your portfolio.','Planned: delayed review, independent challenges, and portfolio evidence.'],
+    ['Diagnose unfamiliar problems','Gather evidence, test a hypothesis, correct a fault, and verify the result.','Available: network sandbox faults and six external Packet Tracer build/practical sheets. Advanced protocol practicals remain incomplete.'],
+    ['Retain and demonstrate','Return to a skill later and solve a different problem without instructions. Document the reasoning for your portfolio.','Available: spaced revisit prompts, unfamiliar fault attempts, evidence notebook, and separate pilot assessment forms. Human learning validation is still needed.'],
     ['Prepare against an exam blueprint','Map each objective to instruction and practical evidence, then use independent assessment.','This app does not yet provide comprehensive CCNA coverage or a readiness assessment.']
   ];
   content.innerHTML = '<div class="hero"><span class="pill">SKILLS, NOT A COUNTDOWN</span><h2>Move forward when the work makes sense.</h2><p>This is a development path, not a promised completion schedule. Reading progress, guided practice, and independent ability should remain separate.</p></div><div class="roadmap">' +

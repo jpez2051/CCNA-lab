@@ -1,10 +1,24 @@
-# CCNA Launchpad v1.2.0
+# CCNA Launchpad v1.3.0
 
-An introductory networking study companion. The first complete foundations workshop adds deeper instruction to the trustworthy-feedback changes in v1.1.4. The rest of the CCNA summaries still need curriculum development; this is not a comprehensive exam course.
+A networking learning lab with a ten-stage beginner path, observable troubleshooting model, subnet and route tools, external practical build sheets, evidence notebook and limited assessment forms. This is not yet a comprehensive CCNA course or validated practice exam.
 
 Live site: https://jpez2051.github.io/CCNA-lab/
 
 ## What changed
+
+### v1.3.0 connected learning lab
+
+Start with **Learning path**. Reading completion keeps associated practicals available in place. Existing progress is retained, and portable backups can be exported/restored from the evidence notebook.
+
+- Ten introductory stages; three entry routes and a starting check.
+- Observable IPv4 sandbox with seven fault categories, prediction-before-test, targeted repair and fresh verification.
+- IPv4 /0–/32 workbench and longest-prefix route trainer.
+- Six Packet Tracer recipes, including an independent capstone.
+- Structured notebook, field-level exercise evidence and spaced revisit suggestions without streaks.
+- Two original 20-item pilot forms with persistent deadlines, delayed feedback, exposure labeling and objective remediation.
+- A 29-objective v2.0 coverage ledger explicitly distinguishes introductions, available practice and missing depth.
+
+See [release review and remaining work](RELEASE-v1.3.0.md). Advanced practical coverage, calibrated full-length exams, executed Packet Tracer project files and human learning validation remain unfinished. Firebase is still a future integration; no cloud persistence is claimed.
 
 ### v1.2.0 foundations workshop
 
