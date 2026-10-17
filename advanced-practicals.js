@@ -1,0 +1,106 @@
+// v1.4.0: original lab plans. Configuration recipes require external execution/review.
+practicals.push(
+{id:'lacp-stp',title:'G. LACP and spanning-tree verification',stage:'switching',objectives:['2.1','2.5'],
+ gear:'Two 2960 switches with two parallel links on Fa0/23–24; two PCs, one per switch in VLAN 10. Begin with links disconnected or shut down until consistent bundle settings are prepared.',
+ steps:['Complete practical B first. Create VLAN 10 on both switches, place PC ports in VLAN 10, and address PCs 192.168.10.11/24 and .12/24. Save a baseline copy.',
+ 'On both switches configure the two member interfaces consistently as trunks, allow VLAN 10, and use channel-group 1 mode active. Configure interface port-channel 1 as the intended trunk too. Do not mix a static on bundle on one side with LACP on the other.',
+ 'Enable spanning-tree mode rapid-pvst on both devices. On SW1 use spanning-tree vlan 10 root primary. Restore the links and inspect show etherchannel summary, show interfaces trunk and show spanning-tree vlan 10.',
+ 'Confirm that members are bundled (commonly P), the port-channel is in use (commonly SU for a Layer 2 channel), and the intended root is elected. Ping between PCs. Shut down one physical member, repeat traffic and inspect bundle state; restore it.'],
+ config:'! Example on each switch; adapt actual interface names\ninterface range fastethernet 0/23 - 24\n switchport mode trunk\n switchport trunk allowed vlan 10\n channel-group 1 mode active\n no shutdown\nexit\ninterface port-channel 1\n switchport mode trunk\n switchport trunk allowed vlan 10\nexit\nspanning-tree mode rapid-pvst\n! SW1 only:\nspanning-tree vlan 10 root primary',
+ fault:'In a separate saved copy, set both peers to LACP passive. Predict negotiation behavior, inspect the summary and repair one side to active. Do not infer bundle success from link LEDs.',
+ verify:'Evidence: both channel summaries, trunk VLAN list, root/port roles, traffic before and after one-member loss. One TCP flow is not expected to consume every member’s aggregate capacity.',
+ independent:'Rebuild with a new VLAN and port plan. Explain why a bundled channel and an STP alternate link are different mechanisms. A three-switch redundant triangle is a separate extension, not demonstrated by this two-switch topology.',
+ source:'https://www.cisco.com/c/en/us/support/docs/lan-switching/etherchannel/12023-4.html'},
+{id:'svi',title:'H. Inter-VLAN routing with SVIs',stage:'switching',objectives:['2.1','2.2'],
+ gear:'One routing-capable multilayer switch (for example a Packet Tracer 3560) and two PCs on different access VLANs. A 2960 Layer 2 switch is not a substitute for this routing task.',
+ steps:['Create VLANs 10 and 20. Assign Fa0/1 as access VLAN 10 and Fa0/2 as access VLAN 20. Give PC-A 192.168.10.10/24 and PC-B 192.168.20.10/24.',
+ 'Configure interface vlan 10 with 192.168.10.1/24 and interface vlan 20 with 192.168.20.1/24; no shutdown on each. Enable ip routing. Configure each PC’s gateway as its own SVI.',
+ 'Inspect show vlan brief, show ip interface brief and show ip route. An SVI may require an active forwarding member port in its VLAN. Verify each PC-to-gateway path before cross-VLAN traffic.',
+ 'Test both directions. Record the route and next-hop decisions. This topology has connected routes; it does not require OSPF or static routes between its own directly attached VLANs.'],
+ config:'ip routing\nvlan 10\nexit\nvlan 20\nexit\ninterface fastethernet 0/1\n switchport mode access\n switchport access vlan 10\nexit\ninterface fastethernet 0/2\n switchport mode access\n switchport access vlan 20\nexit\ninterface vlan 10\n ip address 192.168.10.1 255.255.255.0\n no shutdown\nexit\ninterface vlan 20\n ip address 192.168.20.1 255.255.255.0\n no shutdown',
+ fault:'Move PC-B’s switch port to VLAN 10 while leaving its addressing unchanged. Identify the mismatched Layer 2 placement using outputs before repairing it.',
+ verify:'Retain VLAN/port mapping, SVI operational state, connected routes, host gateways and positive tests in both directions. Distinguish SVI configuration from actual line-protocol state.',
+ independent:'Use two nonoverlapping /26 networks and new VLAN IDs. Diagnose an incorrect gateway or inactive VLAN without copying the original addressing plan.',
+ source:'https://www.cisco.com/c/en/us/support/docs/lan-switching/inter-vlan-routing/41260-189.html'},
+{id:'ospf-v2',title:'I. OSPFv2 adjacency, routes and traffic',stage:'routing',objectives:['3.3','2.4'],
+ gear:'Use practical C’s R1—R2 link: R1 10.0.0.1/30, R2 10.0.0.2/30. LANs are 192.168.10.0/24 and 192.168.20.0/24. Record actual interface names.',
+ steps:['Save a copy and remove the static routes between the two LANs from this copy. Keep working interfaces and host gateways. Verify transit IP reachability before adding a routing protocol.',
+ 'Configure OSPF process 10 with distinct router IDs 1.1.1.1 and 2.2.2.2. Match the transit and local LAN networks into area 0. Make LAN-facing interfaces passive, while keeping the transit interface non-passive.',
+ 'Inspect show ip ospf interface and show ip ospf neighbor. For an Ethernet broadcast transit, interpret DR/BDR roles; do not require a particular winner without controlling election history and priority. Then inspect show ip route ospf.',
+ 'Confirm that the remote LAN route is learned dynamically and test PC-to-PC traffic in both directions. A Full neighbor alone does not prove that every intended LAN is advertised.'],
+ config:'! R1 example; replace g0/0 with the actual LAN-facing interface\nrouter ospf 10\n router-id 1.1.1.1\n network 10.0.0.0 0.0.0.3 area 0\n network 192.168.10.0 0.0.0.255 area 0\n passive-interface gigabitethernet 0/0\n! R2 uses router-id 2.2.2.2 and network 192.168.20.0 0.0.0.255 area 0',
+ fault:'First make one transit interface passive and diagnose the missing adjacency. In a second independent copy, remove only a LAN network statement: distinguish an established adjacency from a missing remote LAN route.',
+ verify:'Retain neighbor roles/states, interface area/timers, learned remote prefixes and source-specific traffic tests. Restore each fault and retest before recording completion.',
+ independent:'Use new /27 LANs and a different transit prefix. Configure point-to-point OSPF network type on both transit interfaces where supported, then explain the changed neighbor-role output.',
+ source:'https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/iproute_ospf/configuration/15-mt/iro-15-mt-book/iro-cfg.html'},
+{id:'ipv6-ospf',title:'J. IPv6 forwarding and OSPFv3',stage:'routing',objectives:['1.4','3.2','3.3'],
+ gear:'Two routers with IPv6/OSPFv3 support and two LANs. LAN A 2001:db8:10::/64; transit 2001:db8:12::/64; LAN B 2001:db8:20::/64. These documentation prefixes are for the isolated lab.',
+ steps:['Record your simulator/device version. Enable ipv6 unicast-routing on both routers. Address R1 LAN ::1, R1 transit ::1, R2 transit ::2 and R2 LAN ::1 within the respective prefixes. Configure each PC with a unique LAN address and the intended local gateway.',
+ 'Inspect show ipv6 interface brief and test directly attached neighbors. Before OSPF, optionally add explicit IPv6 routes for the remote LAN, verify both directions, then remove those static routes in the OSPF copy so they cannot mask a protocol problem.',
+ 'This recipe uses the classic ipv6 router ospf syntax supported on some IOS/Packet Tracer images. Set unique explicit router IDs, then use ipv6 ospf 10 area 0 on both transit interfaces and each LAN interface. Modern IOS XE can use router ospfv3 with address-family syntax; do not mix syntax families blindly.',
+ 'Inspect show ipv6 ospf neighbor and show ipv6 route ospf, then test remote IPv6 traffic. Verify both route directions and host gateways. Use the command help/documentation for your image if the classic syntax is unavailable.'],
+ config:'! R1 classic-syntax example; map interface names before use\nipv6 unicast-routing\nipv6 router ospf 10\n router-id 1.1.1.1\nexit\ninterface gigabitethernet 0/0\n ipv6 address 2001:db8:10::1/64\n ipv6 ospf 10 area 0\n no shutdown\nexit\ninterface gigabitethernet 0/1\n ipv6 address 2001:db8:12::1/64\n ipv6 ospf 10 area 0\n no shutdown\n! R2: router-id 2.2.2.2, LAN 2001:db8:20::1/64, transit 2001:db8:12::2/64',
+ fault:'Remove OSPFv3 activation from one transit interface in a saved copy. Distinguish IPv6 link reachability from neighbor formation and remote-route availability.',
+ verify:'Retain global/link-local addresses, router IDs, neighbors, remote routes and both host-to-host directions. Confirm that a leftover static route is not creating a false success.',
+ independent:'Rebuild with different documented /64s and explicit router IDs. Explain why OSPFv3 still needs a 32-bit router ID and why IPv6 neighbor discovery is not ARP.',
+ source:'https://www.cisco.com/en/US/docs/ios-xml/ios/ipv6/configuration/xe-3sg/ip6-ospf.html'},
+{id:'pat',title:'K. PAT with a real traffic check',stage:'security',objectives:['4.3','3.2'],
+ gear:'Two clients on 192.168.10.0/24 behind R1. R1 inside .1/24, outside 198.51.100.1/30; R2 transit 198.51.100.2/30. Server LAN 203.0.113.0/24, R2 .1, web server .10. Documentation addresses remain inside the lab.',
+ steps:['Configure interfaces and correct client/server gateways. Give R1 a route to 203.0.113.0/24 via 198.51.100.2. R2 already knows the directly attached outside transit; it need not know private clients for this translated design.',
+ 'Mark R1’s LAN interface ip nat inside and transit interface ip nat outside. Select only 192.168.10.0/24 in a standard NAT ACL. Configure overload using R1’s actual outside interface.',
+ 'Enable HTTP on the server. Generate requests from both clients, then inspect show ip nat translations and show ip nat statistics while flows exist. Record inside-local and inside-global addresses and transport identifiers.',
+ 'Verify application responses, not just an entry in the table. Existing translations can persist after a selection change; use fresh traffic and clear dynamic translations only in this isolated lab if needed to test the new configuration.'],
+ config:'! R1 example; inside g0/0 and outside g0/1\ninterface gigabitethernet 0/0\n ip nat inside\nexit\ninterface gigabitethernet 0/1\n ip nat outside\nexit\naccess-list 10 permit 192.168.10.0 0.0.0.255\nip nat inside source list 10 interface gigabitethernet 0/1 overload\nip route 203.0.113.0 255.255.255.0 198.51.100.2',
+ fault:'In a saved copy change the NAT selection ACL to the wrong client subnet. Compare a router-originated reachability test with fresh client application traffic; the router’s own ping is not proof of client PAT.',
+ verify:'Retain interface roles, selection ACL, routes, fresh client translations and both application results. Distinguish missing translation from missing return path or stopped service.',
+ independent:'Use a new inside prefix and an additional client. Prove that sharing an outside address does not mean every flow shares the same translated port.',
+ source:'https://www.cisco.com/c/en/us/support/docs/ip/network-address-translation-nat/13772-12.html'},
+{id:'relay',title:'L. Routed DHCP relay',stage:'infrastructure',objectives:['1.7','1.6'],
+ gear:'Client LAN on R1: 192.168.40.0/24, R1 .1. R1—R2 transit: 10.0.0.0/30, R1 .1 and R2 .2. R2 runs IOS DHCP for the remote client LAN.',
+ steps:['Verify interface state. R2 needs a route back to 192.168.40.0/24 via 10.0.0.1. Temporarily configure a static client address to verify this routed path, then return the client to DHCP.',
+ 'On R2 exclude infrastructure addresses and create a pool for 192.168.40.0/24 with default-router 192.168.40.1. DNS should be a real reachable lab resolver if configured; do not invent an unavailable service just to populate the option.',
+ 'On R1’s client-facing interface configure ip helper-address 10.0.0.2. The helper belongs where the client broadcast is received, not arbitrarily on the transit interface.',
+ 'Renew/reacquire the client lease. Inspect the client address/mask/gateway, show ip dhcp binding and show ip dhcp pool on R2, and relevant interface configuration on R1. Then test the gateway and a routed destination.'],
+ config:'! R2\nip route 192.168.40.0 255.255.255.0 10.0.0.1\nip dhcp excluded-address 192.168.40.1 192.168.40.20\nip dhcp pool CLIENTS\n network 192.168.40.0 255.255.255.0\n default-router 192.168.40.1\nexit\n! R1 client-facing interface, in R1 configuration mode:\ninterface gigabitethernet 0/0\n ip helper-address 10.0.0.2',
+ fault:'Remove the helper in a saved copy, then force a genuinely new lease attempt. An existing valid lease can hide the failure. Restore the helper, reacquire and verify the allocated settings and routed traffic.',
+ verify:'Retain relay placement, server pool/binding, return route and client settings. A lease alone does not prove DNS or application success.',
+ independent:'Use a different client subnet and matching scope. Diagnose a wrong pool network separately from a missing helper and a missing return route.',
+ source:'https://www.cisco.com/web/TH/assets/docs/seminar/20080401_wan_7_4_1.pdf'}
+);
+
+// Bounded evidence models for browser practice; these are not IOS/Packet Tracer emulators.
+const advancedModels={
+ lacp:{title:'LACP negotiation',objective:'2.1',scenario:'Two parallel, compatible Layer 2 links connect SW1 and SW2. Trunk/VLAN settings and physical links are correct. The required outcome is a negotiated LACP bundle, not merely carrier or fallback traffic.',
+  initial:{left:'passive',right:'passive'},choices:{left:['active','passive'],right:['active','passive']},
+  observe:s=>['SW1 member LACP mode: '+s.left,'SW2 member LACP mode: '+s.right,'Modeled channel: '+(s.left==='active'||s.right==='active'?'members bundled; channel in use':'no negotiated bundle')],
+  verify:s=>[{label:'Negotiated bundle',ok:s.left==='active'||s.right==='active'}],
+  hint:'At least one peer must initiate negotiation. Passive/passive is not enough.'},
+ ospf:{title:'OSPF neighbor and route',objective:'3.3',scenario:'R1 and R2 have a working transit link, unique router IDs and matching timers/network types. R1 is area 0 and non-passive. R1 needs the remote LAN route from R2. This model omits election, convergence and other protocol details.',
+  initial:{area:'1',passive:'no',advertise:'yes'},choices:{area:['0','1'],passive:['yes','no'],advertise:['yes','no']},
+  observe:s=>['R2 transit area: '+s.area,'R2 transit passive: '+s.passive,'R2 LAN included: '+s.advertise,'Modeled adjacency: '+(s.area==='0'&&s.passive==='no'?'Full':'absent'),'Modeled remote route: '+(s.area==='0'&&s.passive==='no'&&s.advertise==='yes'?'present':'absent')],
+  verify:s=>[{label:'Neighbor formed',ok:s.area==='0'&&s.passive==='no'},{label:'Remote LAN route learned',ok:s.area==='0'&&s.passive==='no'&&s.advertise==='yes'}],
+  hint:'Inspect area and passive state, then distinguish an adjacency from advertisement of the LAN.'},
+ pat:{title:'PAT selection and application',objective:'4.3',scenario:'A client on 192.168.10.0/24 needs an external web service. Physical links, routes, interface inside/outside roles and the server return path are correct. No ACL filters the flow. Only the displayed selection and service conditions vary.',
+  initial:{subnet:'192.168.20.0/24',service:'running'},choices:{subnet:['192.168.10.0/24','192.168.20.0/24'],service:['running','stopped']},
+  observe:s=>['NAT selection: '+s.subnet,'Web listener: '+s.service,'Fresh modeled translation: '+(s.subnet==='192.168.10.0/24'?'created':'not created')],
+  verify:s=>[{label:'Client translation created',ok:s.subnet==='192.168.10.0/24'},{label:'Application response',ok:s.subnet==='192.168.10.0/24'&&s.service==='running'}],
+  hint:'A configured selection list must match the source. Even a translation does not prove a running application.'},
+ acl:{title:'ACL order and attachment',objective:'4.6',scenario:'Policy: deny host A to the server, permit host B. Both hosts can reach the server before filtering. An inbound ACL on the client-facing interface can implement the policy. Entries either deny A then permit others, or permit all before deny A.',
+  initial:{order:'permit-first',attached:'yes'},choices:{order:['deny-first','permit-first'],attached:['yes','no']},
+  observe:s=>['List order: '+s.order,'Inbound attachment: '+s.attached],
+  verify:s=>[{label:'Host A denied',ok:s.attached==='yes'&&s.order==='deny-first'},{label:'Host B permitted',ok:true}],
+  hint:'First match wins, and the list must be attached. Verify denied and permitted traffic separately.'}
+};
+function renderAdvancedLab(id='lacp'){
+ activate('path');const spec=advancedModels[id],config={...spec.initial};let revision=0,verified=-1,helped=false,recorded=false;const events=[];
+ learningHeader('Advanced evidence trainer','Four small operational models let you inspect, propose a change and verify outcomes. They do not execute IOS commands or replace the external build practicals. An unfinished attempt resets when you leave.');
+ content.insertAdjacentHTML('beforeend','<section class="card"><div class="cta-row">'+Object.entries(advancedModels).map(([k,v])=>'<button class="btn btn-secondary" data-advanced="'+k+'">'+v.title+'</button>').join('')+'</div><h2>'+spec.title+'</h2><p>'+spec.scenario+'</p><label>Prediction before observing or verifying<textarea id="advancedPrediction" maxlength="2000"></textarea></label><div class="cta-row"><button class="btn btn-secondary" id="advancedInspect">Inspect modeled state</button><button class="btn btn-primary" id="advancedVerify">Verify required outcomes</button><button class="btn btn-secondary" id="advancedHint">Show hint</button></div><pre id="advancedOutput" class="sample-output" role="status"></pre><form id="advancedChange"><label>Setting<select name="setting">'+Object.keys(spec.choices).map(k=>'<option>'+k+'</option>').join('')+'</select></label><label>Proposed value<select name="value"></select></label><button class="btn btn-secondary">Apply one change</button></form><label>Explain your evidence and why the repair works (ungraded)<textarea id="advancedReason" maxlength="3000"></textarea></label><button class="btn btn-primary" id="advancedRecord">Record verified attempt</button><p id="advancedStatus" role="status"></p>'+labButton('External build practicals','packet')+'</section>');
+ const output=document.querySelector('#advancedOutput'),status=document.querySelector('#advancedStatus'),form=document.querySelector('#advancedChange');
+ function options(){form.elements.value.innerHTML=spec.choices[form.elements.setting.value].map(v=>'<option>'+v+'</option>').join('');}options();form.elements.setting.onchange=options;
+ document.querySelectorAll('[data-advanced]').forEach(b=>b.onclick=()=>renderAdvancedLab(b.dataset.advanced));
+ function observe(verify){const prediction=document.querySelector('#advancedPrediction').value.trim();if(!prediction){status.textContent='Write a prediction before inspecting or testing.';return;}const checks=spec.verify(config);const lines=verify?checks.map(x=>(x.ok?'PASS: ':'FAIL: ')+x.label):spec.observe(config);output.textContent=lines.join('\n');events.push({kind:verify?'verify':'inspect',revision,prediction,observations:lines});document.querySelector('#advancedPrediction').value='';if(verify)verified=checks.every(c=>c.ok)?revision:-1;status.textContent='Evidence captured for configuration revision '+revision+'.';}
+ document.querySelector('#advancedInspect').onclick=()=>observe(false);document.querySelector('#advancedVerify').onclick=()=>observe(true);
+ document.querySelector('#advancedHint').onclick=()=>{helped=true;output.textContent=spec.hint;};
+ form.onsubmit=e=>{e.preventDefault();if(!events.length){status.textContent='Collect evidence before changing the model.';return;}const key=form.elements.setting.value,value=form.elements.value.value;events.push({kind:'change',key,before:config[key],after:value});config[key]=value;revision++;verified=-1;status.textContent='Changed '+key+'. Verify again; earlier results are stale.';};
+ document.querySelector('#advancedRecord').onclick=()=>{if(recorded)return;const reason=document.querySelector('#advancedReason').value.trim();if(verified!==revision||!reason){status.textContent='Verify all required outcomes after the latest change and explain your evidence.';return;}recorded=true;learningRecord('advanced-model',spec.objective,true,'Bounded model outcomes verified; explanation ungraded.',{model:id,events:JSON.stringify(events),reason},helped);status.textContent='Attempt recorded'+(helped?' with a hint':'')+'. Apply the corresponding build practical next.';document.querySelector('#advancedRecord').disabled=true;};wireTools();
+}

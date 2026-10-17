@@ -1,6 +1,6 @@
 {
   "name": "ccna-launchpad",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "scripts": {
     "test": "node --test tests/unit.test.cjs tests/foundations.test.cjs tests/learning.test.cjs",

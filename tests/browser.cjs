@@ -23,7 +23,7 @@ async function noOverflow(page,name){
       const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
       await page.goto(url);await page.locator('#continueBtn').waitFor();
-      assert.equal(await page.title(),'CCNA Launchpad v1.3.0');
+      assert.equal(await page.title(),'CCNA Launchpad v1.4.0');
       assert.equal(await page.locator('#streak,.streak-card').count(),0);
       assert(!/day streak|lessons mastered|knowledge-check accuracy/.test(await page.locator('body').innerText()));
       await noOverflow(page,'dashboard');
@@ -171,7 +171,7 @@ async function noOverflow(page,name){
       await page.locator('[data-tool=path]').click();await page.locator('[data-tool=packet]').click();await noOverflow(page,'external practicals');
       await page.locator('[data-tool=notebook]').first().click();await page.locator('[name=scope]').fill('A fictional client <script> is unable to use a service.');await page.locator('#learningNotes button').click();
       await page.locator('#learningNotesStatus').filter({hasText:'Saved'}).waitFor();await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=notebook]').click();assert.match(await page.locator('[name=scope]').inputValue(),/<script>/);await noOverflow(page,'notebook');
-      const backup=page.waitForEvent('download');await page.locator('#backupLearning').click();assert.equal((await backup).suggestedFilename(),'ccna-launchpad-progress-v1.3.0.json');
+      const backup=page.waitForEvent('download');await page.locator('#backupLearning').click();assert.equal((await backup).suggestedFilename(),'ccna-launchpad-progress-v1.4.0.json');
       await page.locator('[data-tool=coverage]').click();assert.equal(await page.locator('[data-cover-stage]').count(),29);await noOverflow(page,'coverage');
       await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=A]').click();
       assert.equal(await page.locator('#examForm fieldset').count(),20);assert.equal(await page.locator('[data-remediate]').count(),0);
@@ -181,7 +181,25 @@ async function noOverflow(page,name){
       await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=A]').click();assert.match(await page.locator('#content').innerText(),/Exposed practice/);
       await page.evaluate(async()=>{state.learning.exam.started=Date.now()-31*60000;state.learning.exam.deadline=state.learning.exam.started+1800000;await save();});
       await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=assessment]').click();await page.locator('#resumeAssessment').click();assert.equal(await page.locator('#examForm').count(),0);assert.equal(await page.locator('[data-remediate]').count(),20);
-      assert.deepEqual(errors,[]);await page.close();console.log('PASS existing and v1.3 learning flows at '+width+'px');
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=advanced]').click();await noOverflow(page,'advanced trainer');
+      await page.locator('#advancedReason').fill('Both ends were passive. Set one to active, then verify the bundle.');await page.locator('#advancedRecord').click();assert.match(await page.locator('#advancedStatus').innerText(),/Verify all/);
+      await page.locator('#advancedPrediction').fill('I expect passive/passive to show no negotiated bundle.');await page.locator('#advancedInspect').click();assert.match(await page.locator('#advancedOutput').innerText(),/no negotiated bundle/);
+      await page.locator('#advancedChange [name=value]').selectOption('active');await page.locator('#advancedChange button').click();await page.locator('#advancedRecord').click();assert.match(await page.locator('#advancedStatus').innerText(),/Verify all/);
+      await page.locator('#advancedPrediction').fill('With one active peer I expect the bundle to negotiate.');await page.locator('#advancedVerify').click();await page.locator('#advancedRecord').click();assert.match(await page.locator('#advancedStatus').innerText(),/Attempt recorded/);
+      await page.locator('[data-advanced=acl]').click();await page.locator('#advancedHint').click();await page.locator('#advancedPrediction').fill('Permit-first should incorrectly allow A.');await page.locator('#advancedVerify').click();assert.match(await page.locator('#advancedOutput').innerText(),/FAIL: Host A/);
+      await page.locator('#advancedChange [name=value]').selectOption('deny-first');await page.locator('#advancedChange button').click();await page.locator('#advancedPrediction').fill('A should now be denied and B permitted.');await page.locator('#advancedVerify').click();await page.locator('#advancedReason').fill('First matching deny now enforces the intended policy.');await page.locator('#advancedRecord').click();assert.equal(await page.evaluate(()=>state.learning.records.at(-1).helped),true);
+      await page.locator('[data-tool=packet]').click();assert.equal(await page.locator('[id^=practical-]').count(),12);await page.locator('#practical-ipv6-ospf details').nth(1).locator('summary').click();assert.match(await page.locator('#practical-ipv6-ospf pre').innerText(),/ipv6 router ospf/);await noOverflow(page,'advanced build guides');
+      await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=F]').click();assert.equal(await page.locator('#examJump option').count(),100);assert.equal(await page.locator('#examForm fieldset').count(),1);assert.match(await page.locator('#content').innerText(),/Exposed practice/);
+      await page.locator('#examForm input').first().check();await page.locator('#examFlag').click();await page.locator('#examNext').click();await page.locator('#examFlagged').click();assert.equal(await page.locator('#examJump').inputValue(),'0');await page.locator('#examClear').click();assert.equal(await page.locator('#examForm input:checked').count(),0);
+      await page.locator('#examJump').selectOption('99');await page.locator('#examForm input').last().check();const fullDeadline=await page.evaluate(()=>state.learning.exam.deadline);await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=assessment]').click();await page.locator('#resumeAssessment').click();assert.equal(await page.locator('#examJump').inputValue(),'99');assert.equal(await page.locator('#examForm input:checked').count(),1);assert.equal(await page.evaluate(()=>state.learning.exam.deadline),fullDeadline);await noOverflow(page,'100-item exam navigation');
+      await page.screenshot({path:path.join(artifacts,'exam-v140-'+width+'.png')});
+      // Seed a completed answer set to test submission/scoring independently of 100 repetitive clicks.
+      await page.evaluate(()=>{for(const q of assessmentBank)state.learning.exam.answers[q.id]=q.answer;});await page.locator('#submitExam').click();assert.match(await page.locator('#content').innerText(),/100 \/ 100/);assert.equal(await page.locator('[data-remediate]').count(),100);
+      const attemptDownload=page.waitForEvent('download');await page.locator('#exportExamAttempt').click();const attempt=await attemptDownload;await attempt.saveAs(path.join(artifacts,'exam-attempt-'+width+'.json'));const exported=JSON.parse(fs.readFileSync(path.join(artifacts,'exam-attempt-'+width+'.json'),'utf8'));assert.equal(exported.items.length,100);assert.equal(exported.score.correct,100);assert.equal(exported.status,'unvalidated practice');
+      await page.reload();await page.locator('#learningPathStart').click();assert.equal(await page.evaluate(()=>Object.keys(state.learning.records.findLast(r=>r.unit==='form-F').responses).length),100);
+      await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=F]').click();await page.evaluate(async()=>{state.learning.exam.started=Date.now()-121*60000;state.learning.exam.deadline=state.learning.exam.started+120*60000;await save();});
+      await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=assessment]').click();await page.locator('#resumeAssessment').click();assert.equal(await page.locator('#examForm').count(),0);assert.equal(await page.locator('[data-remediate]').count(),100);assert.match(await page.locator('#content').innerText(),/100 unanswered/);
+      assert.deepEqual(errors,[]);await page.close();console.log('PASS existing and v1.4 learning/exam flows at '+width+'px');
     }
     const legacy=await browser.newPage();
     await legacy.addInitScript(()=>{if(!localStorage.ccnaLaunchpad)localStorage.ccnaLaunchpad=JSON.stringify({done:['f1','cli0'],labsDone:['l1'],quizTotal:99,quizCorrect:99});});

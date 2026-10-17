@@ -74,3 +74,7 @@ main,.terminal-wrap>*{min-width:0}.term-input{min-width:0}
 #content details{margin:16px 0}#content summary{cursor:pointer}
 #content li{margin-bottom:10px}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #68e2c6;outline-offset:3px}
+#content select{max-width:100%;padding:10px;border:1px solid #56728c;border-radius:6px;background:#101e30;color:#ecf4ff;font-size:16px}
+.exam-prompt{white-space:pre-line;line-height:1.65}
+#examClock{font-weight:700;color:#68e2c6}
+#examForm .answer-line{padding:10px 0}

@@ -1,10 +1,20 @@
-# CCNA Launchpad v1.3.0
+# CCNA Launchpad v1.4.0
 
 A networking learning lab with a ten-stage beginner path, observable troubleshooting model, subnet and route tools, external practical build sheets, evidence notebook and limited assessment forms. This is not yet a comprehensive CCNA course or validated practice exam.
 
 Live site: https://jpez2051.github.io/CCNA-lab/
 
 ## What changed
+
+### v1.4.0 advanced practice and full-session rehearsal
+
+- Six additional external build guides: LACP/Rapid PVST+, SVIs, OSPFv2, IPv6/OSPFv3, PAT and DHCP relay.
+- Four browser evidence trainers distinguish configuration, protocol state and outcome verification.
+- A 100-question / 120-minute rehearsal with navigation, flags, resume, exposure tracking, delayed feedback and attempt export. It samples all 29 top-level v2.0 objectives at the published domain proportions.
+- Existing pilots and saved progress remain supported. All 100 item responses are retained after reload.
+
+This is an **unvalidated draft**, not a certification predictor. Read [release limitations](RELEASE-v1.4.0.md) and the [independent review / learner validation plan](EXAM-VALIDATION.md). The advanced external recipes have not been executed on named device images; browser models are intentionally limited. Firebase/hosting changes remain deferred.
+
 
 ### v1.3.0 connected learning lab
 

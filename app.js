@@ -1,4 +1,4 @@
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 let state, currentView = 'dashboard', currentLesson = null;
 let quizQuestions = [], quizIndex = 0, quizAnswers = [];
 let quizAnswered = false;
@@ -69,8 +69,8 @@ function renderDashboard() {
   const historical = state.legacyLabsDone.filter(id => labs[id] && !state.labsDone.includes(id));
   content.innerHTML = '<section class="hero"><span class="pill">LEARN AT YOUR PACE</span><h2>Understand it. Practice it. Explain it.</h2>' +
     '<p>Begin with devices and cables, then build working networks, investigate faults, and explain the evidence. The learning path connects introductions, tools, practicals, and limited assessments.</p>' +
-    '<div class="cta-row"><button class="btn btn-primary" id="learningPathStart">Start the learning path</button><button class="btn btn-secondary" id="foundationStart">Foundations applications</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: beginner path, network sandbox, subnet and route tools, Packet Tracer build sheets, evidence notebook, and two pilot assessment forms.</p></section>' +
-    '<div class="section-head"><div><h3>Your recorded work</h3><p>Reading, answering, and guided practice are different kinds of progress.</p></div></div>' +
+    '<div class="cta-row"><button class="btn btn-primary" id="learningPathStart">Start the learning path</button><button class="btn btn-secondary" id="foundationStart">Foundations applications</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: beginner path, network sandbox, subnet and route tools, Packet Tracer build sheets, evidence notebook, and a 100-question exam rehearsal plus two pilots.</p></section>' +
+    '<div class="section-head"><div><h3>Reference course and CLI records</h3><p>Reading, answering, and guided practice are different kinds of progress.</p></div></div>' +
     '<div class="grid grid-3"><div class="card metric"><b>' + readCount() + ' / ' + lessons.length + '</b><small>lessons marked read · self-reported</small></div>' +
     '<div class="card metric"><b>' + (answered.length ? firstCorrect + ' / ' + answered.length : 'No answers yet') + '</b><small>distinct questions correct on your first answer</small><p class="q-meta">Retries and practice reuse do not change this first-answer record.</p></div>' +
     '<div class="card metric"><b>' + state.labsDone.length + ' / ' + Object.keys(labs).length + '</b><small>guided command exercises verified</small><p class="q-meta">This records supported configuration and inspection tasks, not working network connectivity.</p></div></div>' +
@@ -261,7 +261,7 @@ function renderRoadmap() {
   const stages = [
     ['Understand the foundations','Explain how a client reaches an application. Interpret an IP address, subnet mask, gateway, and DNS settings.','Available: the four-unit foundations workshop includes worked examples, guided practice, subnet calculations, and limited first-submission scenarios. Broader curriculum coverage is still needed.'],
     ['Practice configuration','Read CLI prompts, enter a configuration, inspect the output, and explain what each command changes.','Current app: five limited, guided command exercises. Use a network simulator for connectivity practice.'],
-    ['Diagnose unfamiliar problems','Gather evidence, test a hypothesis, correct a fault, and verify the result.','Available: network sandbox faults and six external Packet Tracer build/practical sheets. Advanced protocol practicals remain incomplete.'],
+    ['Diagnose unfamiliar problems','Gather evidence, test a hypothesis, correct a fault, and verify the result.','Available: network sandbox faults and twelve external Packet Tracer build/practical sheets. Advanced protocol practicals remain incomplete.'],
     ['Retain and demonstrate','Return to a skill later and solve a different problem without instructions. Document the reasoning for your portfolio.','Available: spaced revisit prompts, unfamiliar fault attempts, evidence notebook, and separate pilot assessment forms. Human learning validation is still needed.'],
     ['Prepare against an exam blueprint','Map each objective to instruction and practical evidence, then use independent assessment.','This app does not yet provide comprehensive CCNA coverage or a readiness assessment.']
   ];
