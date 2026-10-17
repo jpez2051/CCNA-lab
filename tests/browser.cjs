@@ -23,7 +23,7 @@ async function noOverflow(page,name){
       const page=await browser.newPage({viewport:{width,height:900}}),errors=[];
       page.on('pageerror',e=>errors.push(e.message));
       await page.goto(url);await page.locator('#continueBtn').waitFor();
-      assert.equal(await page.title(),'CCNA Launchpad v1.4.0');
+      assert.equal(await page.title(),'CCNA Launchpad v1.4.1');
       assert.equal(await page.locator('#streak,.streak-card').count(),0);
       assert(!/day streak|lessons mastered|knowledge-check accuracy/.test(await page.locator('body').innerText()));
       await noOverflow(page,'dashboard');
@@ -171,7 +171,7 @@ async function noOverflow(page,name){
       await page.locator('[data-tool=path]').click();await page.locator('[data-tool=packet]').click();await noOverflow(page,'external practicals');
       await page.locator('[data-tool=notebook]').first().click();await page.locator('[name=scope]').fill('A fictional client <script> is unable to use a service.');await page.locator('#learningNotes button').click();
       await page.locator('#learningNotesStatus').filter({hasText:'Saved'}).waitFor();await page.reload();await page.locator('#learningPathStart').click();await page.locator('[data-tool=notebook]').click();assert.match(await page.locator('[name=scope]').inputValue(),/<script>/);await noOverflow(page,'notebook');
-      const backup=page.waitForEvent('download');await page.locator('#backupLearning').click();assert.equal((await backup).suggestedFilename(),'ccna-launchpad-progress-v1.4.0.json');
+      const backup=page.waitForEvent('download');await page.locator('#backupLearning').click();assert.equal((await backup).suggestedFilename(),'ccna-launchpad-progress-v1.4.1.json');
       await page.locator('[data-tool=coverage]').click();assert.equal(await page.locator('[data-cover-stage]').count(),29);await noOverflow(page,'coverage');
       await page.locator('[data-tool=path]').click();await page.locator('[data-tool=assessment]').click();await page.locator('[data-form=A]').click();
       assert.equal(await page.locator('#examForm fieldset').count(),20);assert.equal(await page.locator('[data-remediate]').count(),0);

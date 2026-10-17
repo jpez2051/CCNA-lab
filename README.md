@@ -1,10 +1,15 @@
-# CCNA Launchpad v1.4.0
+# CCNA Launchpad v1.4.1
 
 A networking learning lab with a ten-stage beginner path, observable troubleshooting model, subnet and route tools, external practical build sheets, evidence notebook and limited assessment forms. This is not yet a comprehensive CCNA course or validated practice exam.
 
 Live site: https://jpez2051.github.io/CCNA-lab/
 
 ## What changed
+
+### v1.4.1 visible footer version
+
+Added a footer on every view, including mobile, showing the running application version. The footer uses the same version value as the page title and brand.
+
 
 ### v1.4.0 advanced practice and full-session rehearsal
 

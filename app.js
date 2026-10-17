@@ -1,4 +1,4 @@
-const VERSION = '1.4.0';
+const VERSION = '1.4.1';
 let state, currentView = 'dashboard', currentLesson = null;
 let quizQuestions = [], quizIndex = 0, quizAnswers = [];
 let quizAnswered = false;
@@ -278,6 +278,7 @@ async function start() {
   catch(error) { state = ProgressStore.normalize(null); showStorageError(error); }
   document.title = 'CCNA Launchpad v' + VERSION;
   document.querySelector('.brand span').textContent = 'v' + VERSION;
+  document.querySelector('#appVersion').textContent = 'v' + VERSION;
   document.querySelector('#nav').onclick = e => { const b=e.target.closest('.nav-btn'); if (b) setView(b.dataset.view); };
   document.querySelectorAll('.nav-btn').forEach(b => b.setAttribute('aria-label',b.textContent.trim()));
   document.querySelector('#resetProgress').onclick = resetProgress;

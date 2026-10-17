@@ -78,3 +78,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .exam-prompt{white-space:pre-line;line-height:1.65}
 #examClock{font-weight:700;color:#68e2c6}
 #examForm .answer-line{padding:10px 0}
+.app-footer{margin-top:32px;padding:20px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
+.app-footer #appVersion{font-weight:700;color:var(--text);white-space:nowrap}
