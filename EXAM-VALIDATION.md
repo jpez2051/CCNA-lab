@@ -1,8 +1,12 @@
-# CCNA Launchpad v1.4.0 — exam validation work plan
+# CCNA Launchpad v1.5.0 — exam validation work plan
 
 Status: **unvalidated draft**. A 100-item, 120-minute rehearsal is implemented. Its size and single-answer format are a product choice, not a claim about the exact number/type of questions on Cisco's exam. Items are original, not exam dumps. The published v2.0 blueprint supplies the planning domains, not an endorsement.
 
-## Evidence available now
+## v1.5.0 revision
+
+The new R form contains revised versions of the original 100 scenarios with immutable v150 IDs. Original items remain for saved F/A/B attempts. Earlier item exposure is mapped to the revised form; revised wording is not independent assessment. New practice uses separate lesson scenarios. The revised options remove absurd distractors, but remain author-reviewed drafts. Missed/unanswered results appear first with an optional filter. The current session and ten previous completed sessions are retained.
+
+## Earlier baseline evidence
 
 - The full form has 25/25/20/20/10 questions across the five domains and samples all 29 top-level objectives. This does not establish complete subobjective coverage.
 - Pilot A/B retain their original stable IDs. The full form contains those 40 items and 60 additional draft items. Previous form exposure is retained and displayed.

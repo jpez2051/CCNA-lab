@@ -1,4 +1,4 @@
-const VERSION = '1.4.1';
+const VERSION = '1.5.0';
 let state, currentView = 'dashboard', currentLesson = null;
 let quizQuestions = [], quizIndex = 0, quizAnswers = [];
 let quizAnswered = false;
@@ -37,6 +37,8 @@ function render() {
   if (currentView === 'labs') renderLabs();
   if (currentView === 'practice') renderPractice();
   if (currentView === 'roadmap') renderRoadmap();
+  if (currentView === 'assessment') renderAssessment();
+  if (currentView === 'projects') renderNotebook();
   if (currentView === 'foundations') renderFoundations();
 }
 function readCount(list = lessons) { return list.filter(l => state.done.includes(l.id)).length; }
@@ -60,37 +62,10 @@ function reviewButtons(questions) {
   return questions.map(q => '<button class="btn btn-secondary review-lesson" data-lesson="' + q.lessonId + '">' + q.lesson + '</button>').join('');
 }
 function wireReview() { document.querySelectorAll('.review-lesson').forEach(b => b.onclick = () => openLesson(b.dataset.lesson)); }
-function renderDashboard() {
-  pageTitle.textContent = 'Your networking study space';
-  const answered = quizBank.filter(q => state.questions[q.id]);
-  const firstCorrect = answered.filter(q => state.questions[q.id].firstCorrect).length;
-  const revisit = answered.filter(q => !state.questions[q.id].lastCorrect);
-  const step = nextCourseStep();
-  const historical = state.legacyLabsDone.filter(id => labs[id] && !state.labsDone.includes(id));
-  content.innerHTML = '<section class="hero"><span class="pill">LEARN AT YOUR PACE</span><h2>Understand it. Practice it. Explain it.</h2>' +
-    '<p>Begin with devices and cables, then build working networks, investigate faults, and explain the evidence. The learning path connects introductions, tools, practicals, and limited assessments.</p>' +
-    '<div class="cta-row"><button class="btn btn-primary" id="learningPathStart">Start the learning path</button><button class="btn btn-secondary" id="foundationStart">Foundations applications</button><button class="btn btn-secondary" id="continueBtn">Browse lesson summaries</button><button class="btn btn-secondary" id="labBtn">Open CLI practice</button></div><p>New: beginner path, network sandbox, subnet and route tools, Packet Tracer build sheets, evidence notebook, and a 100-question exam rehearsal plus two pilots.</p></section>' +
-    '<div class="section-head"><div><h3>Reference course and CLI records</h3><p>Reading, answering, and guided practice are different kinds of progress.</p></div></div>' +
-    '<div class="grid grid-3"><div class="card metric"><b>' + readCount() + ' / ' + lessons.length + '</b><small>lessons marked read · self-reported</small></div>' +
-    '<div class="card metric"><b>' + (answered.length ? firstCorrect + ' / ' + answered.length : 'No answers yet') + '</b><small>distinct questions correct on your first answer</small><p class="q-meta">Retries and practice reuse do not change this first-answer record.</p></div>' +
-    '<div class="card metric"><b>' + state.labsDone.length + ' / ' + Object.keys(labs).length + '</b><small>guided command exercises verified</small><p class="q-meta">This records supported configuration and inspection tasks, not working network connectivity.</p></div></div>' +
-    (state.legacy ? '<p class="q-meta">Your earlier reading progress is preserved. Old aggregate quiz scores are archived because they counted repeat clicks.' + (historical.length ? ' Earlier lab completions remain recorded; repeat those exercises once with the corrected checker.' : '') + '</p>' : '') +
-    '<div class="section-head"><h3>What to revisit</h3></div><div class="card">' +
-    (revisit.length ? '<p>Your latest answer was incorrect on these topics. Revisit the explanation, then try again.</p><div class="review-list">' + reviewButtons(revisit) + '</div>' :
-      '<p>' + (answered.length ? 'No incorrect latest answers to revisit. Try a different question or explain a concept without looking.' : 'Answer a knowledge check to identify a topic to revisit.') + '</p>') +
-    '<button class="btn btn-secondary" id="practiceBtn">Practice questions</button></div><div class="section-head"><h3>Next step</h3></div>' + nextStepHtml(step,'Continue from your recorded progress') +
-    '<div class="section-head"><h3>Browse topics</h3><button class="btn btn-secondary" id="allLessons">View course</button></div><div class="grid grid-3">' +
-    domains.map(d => '<button class="card domain-card" data-domain="' + d.id + '"><span class="domain-icon">' + d.icon + '</span><h4>' + d.title + '</h4><p>' + d.desc + '</p><div class="domain-meta">' + readCount(lessons.filter(l => l.domain === d.id)) + ' of ' + lessons.filter(l => l.domain === d.id).length + ' marked read</div></button>').join('') + '</div>' +
-    '<div class="section-head"><h3>Progress storage</h3></div><div class="card"><p>Your progress is currently stored in this browser. Clearing browser data removes it.</p><button class="btn btn-secondary" id="resetProgressMain">Reset progress</button></div>';
-  document.querySelector('#resetProgressMain').onclick = resetProgress;
-  document.querySelector('#continueBtn').onclick = () => setView('learn');
-  document.querySelector('#learningPathStart').onclick = () => setView('path');
-  document.querySelector('#foundationStart').onclick = () => setView('foundations');
-  document.querySelector('#allLessons').onclick = () => setView('learn');
-  document.querySelector('#labBtn').onclick = () => setView('labs');
-  document.querySelector('#practiceBtn').onclick = () => setView('practice');
-  document.querySelectorAll('.domain-card').forEach(b => b.onclick = () => { activate('learn'); currentLesson = null; renderLearn(b.dataset.domain); });
-  wireReview(); wireNextStep(step);
+function renderDashboard(){
+ pageTitle.textContent='Your learning workspace';const next=learningNext(state.learning);
+ content.innerHTML='<section class="hero"><span class="pill">BEGINNER FIRST · v1.5.0</span><h2>Understand it. Try it. Explain it.</h2><p>You can start with no networking knowledge. A correct assessment answer does not mean you can explain it, so the starting check never skips teaching.</p><button class="btn btn-primary" id="continueLearning">Continue learning: '+next.title+'</button></section><section class="card"><h3>One learning sequence</h3><p>Read a short explanation → follow a worked example → run the associated lab → solve a fresh scenario → explain the evidence → revisit later.</p><div class="cta-row"><button class="btn btn-secondary" id="learningPathStart">Browse the learning path</button><button class="btn btn-secondary" id="beginnerStart">Start from the beginning</button><button class="btn btn-secondary" id="startingCheckButton">Optional starting check</button></div></section><section class="card"><h3>Your work</h3><p>'+state.learning.read.length+' readings recorded. '+state.learning.records.filter(r=>r.kind==='transfer').length+' scenario attempts. These are activity records, not a mastery score.</p>'+labButton('My projects and backup','notebook')+labButton('Practice assessment','assessment')+'</section><details class="card"><summary>Topic reference and older CLI exercises</summary><p>These are optional reference materials. The learning path is the recommended starting point.</p><button class="btn btn-secondary" id="continueBtn">Open reference course</button><button class="btn btn-secondary" id="foundationStart">Foundations worked examples</button></details>';
+ document.querySelector('#continueLearning').onclick=()=>renderCourseStage(next.id);document.querySelector('#beginnerStart').onclick=()=>renderCourseStage('devices');document.querySelector('#startingCheckButton').onclick=renderStartingCheck;document.querySelector('#learningPathStart').onclick=()=>setView('path');document.querySelector('#continueBtn').onclick=()=>setView('learn');document.querySelector('#foundationStart').onclick=()=>setView('foundations');wireTools();
 }
 function renderLearn(filter = null, completedId = null) {
   activate('learn'); currentLesson = null; pageTitle.textContent = 'Guided networking course';

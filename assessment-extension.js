@@ -64,12 +64,12 @@ assessmentBank.push(...[
 ].map(([id,objective,prompt,options,answer,explanation,error])=>({id:'v140-'+id,form:'C',objective,prompt,options,answer,explanation,error})));
 
 const examDefinitions={A:{count:20,minutes:30,name:'Pilot A'},B:{count:20,minutes:30,name:'Pilot B'},F:{count:100,minutes:120,name:'Full-session rehearsal'}};
-function examItems(form){return assessmentBank.filter(q=>form==='F'||q.form===form);}
+function examItems(form){return assessmentBank.filter(q=>form==='F'?q.form!=='R':q.form===form);}
 function newExam(form,exposures={},now=Date.now()){
  const def=examDefinitions[form];if(!def)throw Error('Unknown exam form');
  const qs=assessmentShuffle(examItems(form));
- return {form,started:now,deadline:now+def.minutes*60000,submitted:null,repeated:qs.some(q=>exposures[q.id]),
-  priorIds:qs.filter(q=>exposures[q.id]).map(q=>q.id),items:qs.map(q=>({id:q.id,order:assessmentShuffle(q.options.map((_,i)=>i))})),answers:{},flags:[],position:0};
+ return {form,started:now,deadline:now+def.minutes*60000,submitted:null,repeated:qs.some(q=>(exposures[q.id]||exposures[q.revisionOf])),
+  priorIds:qs.filter(q=>exposures[q.id]||exposures[q.revisionOf]).map(q=>q.id),items:qs.map(q=>({id:q.id,order:assessmentShuffle(q.options.map((_,i)=>i))})),answers:{},flags:[],position:0};
 }
 function normalizeExam(e){
  const def=examDefinitions[e?.form];if(!def||!Number.isFinite(e.started)||!Number.isFinite(e.deadline)||e.deadline!==e.started+def.minutes*60000||!Array.isArray(e.items)||e.items.length!==def.count||new Set(e.items.map(x=>x?.id)).size!==def.count)return null;

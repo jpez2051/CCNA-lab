@@ -1,9 +1,9 @@
 {
   "name": "ccna-launchpad",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "private": true,
   "scripts": {
-    "test": "node --test tests/unit.test.cjs tests/foundations.test.cjs tests/learning.test.cjs",
-    "test:browser": "node tests/browser.cjs"
+    "test": "node --test tests/unit.test.cjs tests/foundations.test.cjs tests/learning.test.cjs tests/upgrade.test.cjs",
+    "test:browser": "node tests/upgrade-browser.cjs"
   }
 }

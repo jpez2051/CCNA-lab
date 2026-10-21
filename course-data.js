@@ -15,7 +15,7 @@ const courseStages = [
    'The subnet mask divides the address into a network part and a host part. A /24 prefix means the first 24 bits identify the network. Its mask is 255.255.255.0, so 192.168.20.25/24 and 192.168.20.80/24 share network 192.168.20.0. Do not apply “same first three numbers” to other prefixes.',
    'Within a conventional /24, .0 names the network and .255 is the broadcast address. Hosts can use .1 through .254. A /26 divides that /24 into four smaller networks. 192.168.20.77/26 belongs to .64 through .127, with ordinary host addresses .65 through .126.',
    'Worked example: compare 192.168.20.77 and 192.168.20.130. With /24 they are local. With /26 they occupy different subnets. The mask changes the decision even though neither address changed. Use the subnet workbench to see the binary boundary before learning shortcuts.'
-  ],task:'Predict the network containing 172.16.35.9/20. Use the workbench to verify your answer, then explain why the boundary is in the third octet.',tool:'subnet',
+  ],task:'Begin with 192.168.40.25/24: predict network 192.168.40.0. Then use 192.168.40.77/26 and the worked block-size example. Explain why .130 is outside before comparing your answer. Try /20 only after those boundaries make sense.',tool:'subnet',
   check:['What is missing if you only know an IPv4 address and want to decide which destinations are local?', ['The website password','The subnet mask or prefix','The switch brand'],1,'The prefix determines the network boundary.'],evidence:'Record your prediction, the binary mask, and a second address that is outside the resulting subnet.'},
  {id:'routers',title:'3. Connect a second network',outcome:'Separate a final destination from the local next hop.',
   paragraphs:[

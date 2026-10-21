@@ -119,8 +119,8 @@ function gradeFoundation(scenario,answers) {
 let foundationAttempt=null;
 function renderFoundations() {
   activate('foundations');currentLesson=null;pageTitle.textContent='Foundations workshop';
-  const f=state.foundations, recommended=f.diagnostic?foundationUnits.find((u,i)=>!f.diagnostic.correct[i]):null;
-  content.innerHTML='<section class="hero"><span class="pill">MODULE 1 · FROM SYMPTOM TO EVIDENCE</span><h2>Understand the network behind an application.</h2><p>Four connected units for someone who works with IT and wants to understand the mechanisms. Choose a unit that matches what you need to practice.</p><div class="cta-row"><button class="btn btn-primary" id="workshopBegin">'+(recommended?'Start recommended unit':'Start the first unit')+'</button><button class="btn btn-secondary" id="diagnosticStart">'+(f.diagnostic?'Retake starting check':'Find my starting point')+'</button></div></section>'+
+  const f=state.foundations, recommended=null;
+  content.innerHTML='<section class="hero"><span class="pill">MODULE 1 · FROM SYMPTOM TO EVIDENCE</span><h2>Understand the network behind an application.</h2><p>Four connected units for someone who works with IT and wants to understand the mechanisms. Choose a unit that matches what you need to practice.</p><div class="cta-row"><button class="btn btn-primary" id="workshopBegin">'+(recommended?'Start recommended unit':'Start the first unit')+'</button><button class="btn btn-secondary" id="diagnosticStart">'+(f.diagnostic?'Retake starting check':'Optional recognition check')+'</button></div></section>'+
     (recommended?'<p class="course-note">Your starting check suggests reviewing <b>'+recommended.title+'</b>. This is a suggestion, not a placement exam.</p>':'')+
     '<div class="section-head"><h3>Learn, work through an example, then try a fresh problem</h3></div><div class="module-list">'+foundationUnits.map((u,i)=>{
       const attempts=f.attempts.filter(a=>a.unit===u.id),last=attempts.at(-1);
@@ -134,18 +134,7 @@ function renderFoundations() {
   document.querySelector('#exportFoundation').onclick=exportFoundationNotes;
   window.scrollTo(0,0);
 }
-function renderFoundationDiagnostic() {
-  pageTitle.textContent='Find your starting point';
-  content.innerHTML='<div class="card"><h2>A short starting check</h2><p>Answer from memory. These four questions only suggest where to begin; all units remain available.</p><form id="foundationDiagnostic">'+foundationDiagnostic.map((q,i)=>'<fieldset><legend>'+q.q+'</legend>'+q.opts.map((o,j)=>'<label class="answer-line"><input type="radio" name="d'+i+'" value="'+j+'" required> '+o+'</label>').join('')+'</fieldset>').join('')+'<div class="cta-row"><button class="btn btn-primary">Show suggested starting point</button><button type="button" class="btn btn-secondary" id="skipDiagnostic">Skip to units</button></div></form><div id="diagnosticResult" role="status"></div></div>';
-  document.querySelector('#skipDiagnostic').onclick=renderFoundations;
-  document.querySelector('#foundationDiagnostic').onsubmit=e=>{
-    e.preventDefault();const data=new FormData(e.target),correct=foundationDiagnostic.map((q,i)=>Number(data.get('d'+i))===q.a);
-    state.foundations.diagnostic={correct,at:new Date().toISOString()};save();
-    e.target.querySelectorAll('input,button').forEach(el=>el.disabled=true);
-    document.querySelector('#diagnosticResult').innerHTML='<h3>Where to focus</h3>'+foundationDiagnostic.map((q,i)=>'<p><b>'+foundationUnits[i].title+': '+(correct[i]?'this answer was correct':'review recommended')+'.</b> '+q.why+'</p>').join('')+'<button class="btn btn-primary" id="diagnosticContinue">Go to my units</button>';
-    document.querySelector('#diagnosticContinue').onclick=renderFoundations;
-  };window.scrollTo(0,0);
-}
+function renderFoundationDiagnostic(){renderStartingCheck(true);}
 function renderFoundationUnit(id) {
   activate('foundations');const u=foundationUnits.find(u=>u.id===id);pageTitle.textContent=u.title;
   content.innerHTML='<div class="lesson-layout"><article class="card lesson-card"><span class="pill">FOUNDATIONS WORKSHOP</span><h2>'+u.title+'</h2><p><b>After this unit:</b> '+u.outcome+'</p><div class="analogy">'+u.story+'</div><details class="glossary"><summary>Plain-language glossary</summary><dl>'+foundationGlossary.map(([term,definition])=>'<dt><b>'+term+'</b></dt><dd>'+definition+'</dd>').join('')+'</dl></details>'+u.body+

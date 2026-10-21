@@ -80,3 +80,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 #examForm .answer-line{padding:10px 0}
 .app-footer{margin-top:32px;padding:20px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
 .app-footer #appVersion{font-weight:700;color:var(--text);white-space:nowrap}
+
+/* v1.5.0: answer status is expressed in words as well as color. */
+.answer-review{border-left:4px solid #71859e;padding:16px;margin:16px 0;background:#122238;border-radius:8px}
+.answer-wrong{border-left-color:#ffb0a6}.answer-wrong h3{color:#ffb0a6}
+.answer-correct{border-left-color:#68e2c6}.answer-correct h3{color:#68e2c6}
+[hidden]{display:none!important}.teaching-sequence section{margin:24px 0}.teaching-sequence h4{font-size:19px}
+#startingResults:focus,#transferResult:focus{outline:3px solid #68e2c6;outline-offset:3px}
+@media(max-width:900px){.app-shell{grid-template-columns:minmax(0,1fr)}.sidebar{position:static;height:auto;padding:10px;border-right:0;border-bottom:1px solid var(--line)}.sidebar .brand{display:none}.sidebar nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.nav-btn{min-width:0;padding:10px 4px;font-size:12px;overflow-wrap:anywhere}.nav-btn span{display:inline!important}}
+@media(max-width:600px){.answer-review{padding:12px}}
