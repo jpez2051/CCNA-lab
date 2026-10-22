@@ -1,10 +1,15 @@
-# CCNA Launchpad v1.5.0
+# CCNA Launchpad v1.5.1
 
 A networking learning lab with a ten-stage beginner path, observable troubleshooting model, subnet and route tools, external practical build sheets, evidence notebook and limited assessment forms. This is not yet a comprehensive CCNA course or validated practice exam.
 
 Live site: https://jpez2051.github.io/CCNA-lab/
 
 ## What changed
+
+### v1.5.1 review evidence and lab packages
+
+Three downloadable text starter packages cover a LAN, VLAN trunks, and routed traffic with an ACL extension. The assessment review workspace exports all 100 items, records reviewer evidence and summarizes real attempt exports locally. Packet Tracer execution and independent validation remain pending.
+
 
 ### v1.5.0 beginner-first learning and explicit feedback
 

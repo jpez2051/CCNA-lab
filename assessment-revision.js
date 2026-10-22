@@ -1,4 +1,4 @@
-// v1.5.0 revised draft options. Legacy IDs stay immutable for saved attempts.
+// v1.5.1 revised draft options. Legacy IDs stay immutable for saved attempts.
 // Independent technical review and learner validation remain pending.
 const revisedOptions = {
   "A01": [

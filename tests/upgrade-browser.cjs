@@ -8,7 +8,7 @@ async function fits(page,label){assert(await page.evaluate(()=>document.document
  const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_PATH||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
  try{for(const width of [1440,390,320]){
  const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
- await page.goto(process.env.TEST_URL||'http://127.0.0.1:'+server.address().port);await page.locator('#continueLearning').waitFor();assert.equal(await page.locator('#appVersion').innerText(),'v1.5.0');await fits(page,'dashboard');
+ await page.goto(process.env.TEST_URL||'http://127.0.0.1:'+server.address().port);await page.locator('#continueLearning').waitFor();assert.equal(await page.locator('#appVersion').innerText(),'v1.5.1');await fits(page,'dashboard');
  await page.locator('#startingCheckButton').click();
  const answers=await page.evaluate(()=>courseStages.slice(0,5).map(u=>u.check[2]));
  for(let i=0;i<5;i++)await page.locator('[name=d'+i+'][value="'+answers[i]+'"]').check();
@@ -26,8 +26,14 @@ async function fits(page,label){assert(await page.evaluate(()=>document.document
  await page.evaluate(()=>{const e=state.learning.exam;for(const x of e.items)e.answers[x.id]=assessmentBank.find(q=>q.id===x.id).answer;const q=assessmentBank.find(q=>q.id===e.items[0].id);e.answers[q.id]=(q.answer+1)%q.options.length;delete e.answers[e.items[1].id];});await page.locator('#submitExam').click();assert.equal(await page.locator('[data-result=wrong]').count(),2);assert.match(await page.locator('#content').innerText(),/98 \/ 100/);assert.equal(await page.locator('[data-result]').first().getAttribute('data-result'),'wrong');await page.locator('#resultFilter').selectOption('wrong');assert.equal(await page.locator('[data-result]:visible').count(),2);await fits(page,'exam results');await page.screenshot({path:path.join(art,'v150-exam-'+width+'.png'),fullPage:true});
  await page.locator('[data-view=assessment]').click();await page.locator('#startRehearsal').click();assert.equal(await page.evaluate(()=>state.learning.examHistory.length),1);assert.equal(await page.evaluate(()=>state.learning.exam.priorIds.length),100);
  await page.evaluate(()=>{state.learning.exam.started=Date.now()-121*60000;state.learning.exam.deadline=state.learning.exam.started+120*60000;renderExam();});assert.equal(await page.locator('[data-result=wrong]').count(),100);
+ // Review evidence and starter packages must remain explicitly unverified.
+ await page.locator('[data-view=assessment]').click();await page.locator('[data-tool=quality]').click();assert.equal(await page.locator('#qualityItem option').count(),100);
+ await page.locator('#qualityReview [name=reviewer]').fill('Local test reviewer');await page.locator('#qualityReview [name=source]').fill('Test evidence only');await page.locator('#qualityReview [name=environment]').fill('No device execution');await page.locator('#qualityReview [name=notes]').fill('This is a test record, not approval.');await page.locator('#qualityReview button').click();assert.match(await page.locator('#qualityStatus').innerText(),/remains pending/);await fits(page,'review workspace');
+ const reviewDownload=page.waitForEvent('download');await page.locator('#reviewPackage').click();const review=await reviewDownload;const reviewPath=path.join(art,'review-pack-'+width+'.json');await review.saveAs(reviewPath);assert.equal(JSON.parse(fs.readFileSync(reviewPath)).items.length,100);
+ await page.reload();await page.locator('#continueLearning').waitFor();assert.equal(await page.evaluate(()=>state.learning.quality.reviews.length),1);
+ await page.evaluate(()=>renderLabPackages());assert.equal(await page.locator('[data-build]').count(),3);const buildDownload=page.waitForEvent('download');await page.locator('[data-build=lan]').click();const build=await buildDownload;const buildPath=path.join(art,'lan-'+width+'.md');await build.saveAs(buildPath);assert.match(fs.readFileSync(buildPath,'utf8'),/not executed in Packet Tracer/);await fits(page,'build packages');await page.screenshot({path:path.join(art,'v151-packages-'+width+'.png'),fullPage:true});
  // Legacy lesson completion still stays with its required lab.
  await page.evaluate(()=>openLesson('cli0'));await page.locator('[name=q][value="2"]').check();await page.locator('#checkAnswer').click();await page.locator('#markDone').click();assert.equal(await page.locator('#openLessonLab').count(),1);assert.match(await page.locator('#lessonStatus').innerText(),/now apply it in the lab/);
- assert.deepEqual(errors,[]);await page.close();console.log('PASS v1.5.0 desktop/mobile flows at '+width+'px');
+ assert.deepEqual(errors,[]);await page.close();console.log('PASS v1.5.1 desktop/mobile flows at '+width+'px');
  }}finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

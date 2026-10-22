@@ -1,4 +1,4 @@
-// v1.5.0: teaching comes before recognition checks. Prose is never auto-graded.
+// v1.5.1: teaching comes before recognition checks. Prose is never auto-graded.
 const teachingSteps = {
  devices:[
  ['Start with a message','Imagine sending a document to a printer. Your laptop is the sender; the printer is the recipient. Each needs a working connection. An interface is the connection point: an Ethernet socket or a Wi-Fi radio. A switch joins wired interfaces on a local network. An access point joins wireless clients to a network. Neither a cable nor a strong radio signal proves that the printer can process your document.'],

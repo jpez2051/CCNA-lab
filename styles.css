@@ -80,6 +80,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 #examForm .answer-line{padding:10px 0}
 .app-footer{margin-top:32px;padding:20px 0 8px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
 .app-footer #appVersion{font-weight:700;color:var(--text);white-space:nowrap}
+#content a{color:#9bd9ff}#content a:visited{color:#d0bdff}
 
 /* v1.5.0: answer status is expressed in words as well as color. */
 .answer-review{border-left:4px solid #71859e;padding:16px;margin:16px 0;background:#122238;border-radius:8px}

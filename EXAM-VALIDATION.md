@@ -1,6 +1,10 @@
-# CCNA Launchpad v1.5.0 — exam validation work plan
+# CCNA Launchpad v1.5.1 — exam validation work plan
 
 Status: **unvalidated draft**. A 100-item, 120-minute rehearsal is implemented. Its size and single-answer format are a product choice, not a claim about the exact number/type of questions on Cisco's exam. Items are original, not exam dumps. The published v2.0 blueprint supplies the planning domains, not an endorsement.
+
+## v1.5.1 evidence collection
+
+The assessment review workspace exports a 100-item review pack and stores exact-snapshot reviewer notes. The local attempt analyzer reports selected-sample counts, rejects changed content/keys, and skips duplicate exports. Neither tool verifies reviewer independence or establishes exam validity. Three text lab starter packages include blank execution reports; actual Packet Tracer execution remains pending because it is not installed.
 
 ## v1.5.0 revision
 
